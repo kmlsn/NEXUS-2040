@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
-    "migrate": "tsx src/migrations/cli.ts up",
-    "test:integration": "tsx scripts/migrations-integration.ts",
+    "migrate": "tsx --env-file-if-exists=../../.env src/migrations/cli.ts up",
+    "test:integration": "tsx --env-file-if-exists=../../.env scripts/migrations-integration.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

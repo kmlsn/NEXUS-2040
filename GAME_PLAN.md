@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 1 - Teknik temel (`ACTIVE`) |
 | Sonraki faz | Faz 2 - Stratejik ekonomi (`BLOCKED`) |
-| Sonraki görev | `P1.8` Yerel geliştirme başlangıç rehberini komut sözleşmesiyle eşleştir |
-| Kodlama durumu | `P1.7` tamamlandı; `P1.8` başlayabilir |
+| Sonraki görev | Faz 1 çıkış kapısını doğrula |
+| Kodlama durumu | `P1.8` tamamlandı; Faz 1 kapanış doğrulaması başlayabilir |
 | Son faz kapısı | Faz 0 plan, matematik, ajan ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı Faz 1'i başlattı; yalnız Faz 1 görevleri uygulanabilir. |
 
@@ -196,7 +196,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 - [x] **P1.5** Saat, UUID ve Bölüm 28 PCG32 seed/stream sözleşmesi için testte değiştirilebilir soyutlamalar oluştur; Python/TypeScript golden vektörünü birebir geçir.
 - [x] **P1.6** Sağlık kontrolü, yapılandırılmış log, hata sözleşmesi ve request correlation ekle.
 - [x] **P1.7** CI üzerinde lint, typecheck, unit ve entegrasyon testlerini zorunlu yap.
-- [ ] **P1.8** Yerel geliştirme başlangıç rehberini kısa ve komut odaklı olarak bu plandaki komutlarla eşleştir.
+- [x] **P1.8** Yerel geliştirme başlangıç rehberini kısa ve komut odaklı olarak bu plandaki komutlarla eşleştir.
 
 ### Zorunlu kontroller
 
@@ -617,6 +617,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-10 | P1.5 | `packages/contracts` test portları, `packages/simulation` PCG32/fixture ve `tools/verify_pcg_fixture.py`; TypeScript/Python golden vektörleri, stream izolasyonu, sınır/rounding testleri, `pnpm verify`, denge/kalite incelemesi ve `docs/test-reports/P1.5-lifecycle.md` PASS | Geçti |
 | 2026-08-13 | P1.6 | API/worker Nest liveness endpointleri, yapılandırılmış JSON loglar, güvenli hata sözleşmesi ve request correlation; iki ardışık HTTP smoke, kalite/lifecycle PASS, PostgreSQL/Redis entegrasyonu ve `pnpm verify` PASS | Geçti |
 | 2026-08-14 | P1.7 | `.github/workflows/ci.yml`, platform-bağımsız PCG fixture sarmalayıcısı; GitHub Actions run `31744637453` içinde `lint/typecheck/unit/integration` PASS ve `main` için strict required checks/PR koruması; kalite/lifecycle PASS | Geçti |
+| 2026-08-14 | P1.8 | `README.md`, optional `.env` Compose/API sarmalayıcıları; varsayılan ve özel portlu yerel başlangıç/migration/entegrasyon akışı, `pnpm verify`, kalite ve `docs/test-reports/P1.8-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
