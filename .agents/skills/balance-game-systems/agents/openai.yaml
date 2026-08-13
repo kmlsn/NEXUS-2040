@@ -1,0 +1,4 @@
+interface:
+  display_name: "Balance Game Systems"
+  short_description: "Checks economy and operation mathematics"
+  default_prompt: "Use $balance-game-systems to review the selected game system mathematics and balance."

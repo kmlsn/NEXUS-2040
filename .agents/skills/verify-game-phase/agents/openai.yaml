@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Game Phase"
+  short_description: "Checks phase gates and plan evidence"
+  default_prompt: "Use $verify-game-phase to verify the current phase gate against GAME_PLAN.md."

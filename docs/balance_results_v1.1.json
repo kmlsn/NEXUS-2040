@@ -1,0 +1,1872 @@
+{
+  "metadata": {
+    "formula_version": "balance-1.2",
+    "content_version": "asteria-baseline-0.2",
+    "seed": 20260809,
+    "simulations_per_matched_pair": 100000,
+    "world_cycle_hours": 6,
+    "prng": "PCG-XSH-RR 32",
+    "probability_quantization_digits": 9,
+    "rounding": "half-away-from-zero"
+  },
+  "formulas": {
+    "success": "clamp(0.08, 0.92, 0.08 + 0.84*sigmoid((A + tool - D)/11 + 0.18*ln(1+intel) - heat_penalty + support) + node_delta)",
+    "node_delta": "clamp(-0.10, 0.10, (score-50)/500)",
+    "detection": "0.03 + 0.55 * sigmoid((monitoring + noise + score_noise + 0.25*heat - stealth - cover)/12)",
+    "facility_rate": "base_rate * 1.24^(level-1)",
+    "facility_capital_cost": "base_capital * 1.55^(level-1)",
+    "facility_component_cost": "base_components * 1.48^(level-1)",
+    "facility_time_minutes": "min(360, base_time * 1.50^(level-1))",
+    "facility_energy_demand": "base_demand * 1.18^(level-1)",
+    "energy_efficiency": "allocation / demand; allocation ordered by priority then facility_id",
+    "activity_bonus": "min(0.20, 0.08*ln(1+operations_per_day))",
+    "market_index": "clamp(0.85, 1.15, 1 + 0.72*(previous-1) + shock)",
+    "contract_probability": "0.10 + 0.80*sigmoid((player_score-best_npc_score)/9)",
+    "offer_score": "0.45*preparedness + 0.25*reputation + 0.20*urgency_fit + 0.10*price_score",
+    "bandwidth": "clamp(12,40,10+2*data_center_level+floor(research/5))",
+    "loadout_valid": "all tool costs are integer 1..10 and sum(costs)<=bandwidth",
+    "loadout_modes": {
+      "silent": {
+        "support": 0.0,
+        "detection_delta": -0.05,
+        "reward_multiplier": 0.95,
+        "heat_delta": -2
+      },
+      "balanced": {
+        "support": 0.0,
+        "detection_delta": 0.0,
+        "reward_multiplier": 1.0,
+        "heat_delta": 0
+      },
+      "fast": {
+        "support": 0.08,
+        "detection_delta": 0.08,
+        "reward_multiplier": 1.05,
+        "heat_delta": 4
+      }
+    },
+    "node_score": "round(clamp(0,100,0.45*R+0.30*L+0.25*K-20*invalid_edges))",
+    "node_launch": "path_exists and invalid_edges==0 and delivered>=required>0",
+    "planned_resolution": "raw=P_success(score50)+min(0.06,0.02*mastered_successes); clamp(0.78,0.88,raw)",
+    "world_axis_delta": "round1(clamp(-8,8,8*grade*axis_vector))",
+    "world_axis_apply": "round1(clamp(0,100,current+delta))",
+    "npc_adaptation": "min(10, 2.5*ln(1+exposure))",
+    "npc_exposure_next": "round4(max(0, 0.75*previous_exposure + max(0,new_exposure)))",
+    "failure_analysis": "base_evidence * 0.25 * (0.80 if detected else 1.0) * jitter",
+    "xp_to_next": "60 * level^1.35"
+  },
+  "matched_simulation": [
+    {
+      "player": "Çırak",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 37.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 55.01,
+      "success_rate": 0.7833,
+      "detection_rate": 0.1883,
+      "success_and_undetected_rate": 0.636,
+      "expected_capital_per_attempt": 130.16,
+      "expected_evidence_per_attempt": 3.88,
+      "expected_heat_gain": 6.28
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 47.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 57.98,
+      "success_rate": 0.7999,
+      "detection_rate": 0.1997,
+      "success_and_undetected_rate": 0.6399,
+      "expected_capital_per_attempt": 268.02,
+      "expected_evidence_per_attempt": 7.13,
+      "expected_heat_gain": 8.32
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 57.54,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 59.96,
+      "success_rate": 0.787,
+      "detection_rate": 0.2508,
+      "success_and_undetected_rate": 0.5897,
+      "expected_capital_per_attempt": 492.17,
+      "expected_evidence_per_attempt": 11.62,
+      "expected_heat_gain": 10.81
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 64.14,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 62.02,
+      "success_rate": 0.7245,
+      "detection_rate": 0.3457,
+      "success_and_undetected_rate": 0.4748,
+      "expected_capital_per_attempt": 772.0,
+      "expected_evidence_per_attempt": 16.98,
+      "expected_heat_gain": 13.88
+    },
+    {
+      "player": "Elit",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 69.77,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 64.99,
+      "success_rate": 0.6447,
+      "detection_rate": 0.4257,
+      "success_and_undetected_rate": 0.3707,
+      "expected_capital_per_attempt": 1108.1,
+      "expected_evidence_per_attempt": 22.87,
+      "expected_heat_gain": 16.93
+    }
+  ],
+  "cross_tier_simulation": [
+    {
+      "player": "Çırak",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 37.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 54.97,
+      "success_rate": 0.7859,
+      "detection_rate": 0.1871,
+      "success_and_undetected_rate": 0.6392,
+      "expected_capital_per_attempt": 130.58,
+      "expected_evidence_per_attempt": 3.88,
+      "expected_heat_gain": 6.26
+    },
+    {
+      "player": "Çırak",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 37.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 54.92,
+      "success_rate": 0.6097,
+      "detection_rate": 0.326,
+      "success_and_undetected_rate": 0.4107,
+      "expected_capital_per_attempt": 187.49,
+      "expected_evidence_per_attempt": 5.51,
+      "expected_heat_gain": 10.16
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 47.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 57.99,
+      "success_rate": 0.8834,
+      "detection_rate": 0.1034,
+      "success_and_undetected_rate": 0.7923,
+      "expected_capital_per_attempt": 154.7,
+      "expected_evidence_per_attempt": 4.44,
+      "expected_heat_gain": 5.21
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 47.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 58.01,
+      "success_rate": 0.7991,
+      "detection_rate": 0.1994,
+      "success_and_undetected_rate": 0.6399,
+      "expected_capital_per_attempt": 267.78,
+      "expected_evidence_per_attempt": 7.13,
+      "expected_heat_gain": 8.32
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 47.24,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 57.99,
+      "success_rate": 0.6113,
+      "detection_rate": 0.3711,
+      "success_and_undetected_rate": 0.3858,
+      "expected_capital_per_attempt": 353.81,
+      "expected_evidence_per_attempt": 9.15,
+      "expected_heat_gain": 12.57
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 57.54,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 60.02,
+      "success_rate": 0.8867,
+      "detection_rate": 0.1123,
+      "success_and_undetected_rate": 0.7873,
+      "expected_capital_per_attempt": 311.86,
+      "expected_evidence_per_attempt": 8.05,
+      "expected_heat_gain": 7.28
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 57.54,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 60.11,
+      "success_rate": 0.7846,
+      "detection_rate": 0.2481,
+      "success_and_undetected_rate": 0.592,
+      "expected_capital_per_attempt": 491.71,
+      "expected_evidence_per_attempt": 11.61,
+      "expected_heat_gain": 10.8
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 57.54,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 60.02,
+      "success_rate": 0.5864,
+      "detection_rate": 0.4146,
+      "success_and_undetected_rate": 0.3444,
+      "expected_capital_per_attempt": 590.84,
+      "expected_evidence_per_attempt": 14.09,
+      "expected_heat_gain": 15.08
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 64.14,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 62.0,
+      "success_rate": 0.8632,
+      "detection_rate": 0.183,
+      "success_and_undetected_rate": 0.7056,
+      "expected_capital_per_attempt": 562.29,
+      "expected_evidence_per_attempt": 12.9,
+      "expected_heat_gain": 9.95
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 64.14,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 62.03,
+      "success_rate": 0.7221,
+      "detection_rate": 0.3454,
+      "success_and_undetected_rate": 0.4737,
+      "expected_capital_per_attempt": 769.9,
+      "expected_evidence_per_attempt": 16.95,
+      "expected_heat_gain": 13.89
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 64.14,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 61.98,
+      "success_rate": 0.4855,
+      "detection_rate": 0.4817,
+      "success_and_undetected_rate": 0.252,
+      "expected_capital_per_attempt": 786.6,
+      "expected_evidence_per_attempt": 18.34,
+      "expected_heat_gain": 18.14
+    },
+    {
+      "player": "Elit",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 69.77,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 64.94,
+      "success_rate": 0.8305,
+      "detection_rate": 0.259,
+      "success_and_undetected_rate": 0.6153,
+      "expected_capital_per_attempt": 935.17,
+      "expected_evidence_per_attempt": 19.67,
+      "expected_heat_gain": 12.71
+    },
+    {
+      "player": "Elit",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 69.77,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 65.03,
+      "success_rate": 0.6457,
+      "detection_rate": 0.4229,
+      "success_and_undetected_rate": 0.3719,
+      "expected_capital_per_attempt": 1110.52,
+      "expected_evidence_per_attempt": 22.91,
+      "expected_heat_gain": 16.89
+    }
+  ],
+  "facility_table": [
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 1,
+      "output_per_hour": 90.0,
+      "upgrade_capital_cost": 220,
+      "upgrade_component_cost": 12,
+      "upgrade_time_minutes": 1.5,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 2,
+      "output_per_hour": 111.6,
+      "upgrade_capital_cost": 341,
+      "upgrade_component_cost": 18,
+      "upgrade_time_minutes": 2.3,
+      "storage_hours": 25.5
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 3,
+      "output_per_hour": 138.38,
+      "upgrade_capital_cost": 529,
+      "upgrade_component_cost": 26,
+      "upgrade_time_minutes": 3.4,
+      "storage_hours": 27.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 4,
+      "output_per_hour": 171.6,
+      "upgrade_capital_cost": 819,
+      "upgrade_component_cost": 39,
+      "upgrade_time_minutes": 5.1,
+      "storage_hours": 28.5
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 5,
+      "output_per_hour": 212.78,
+      "upgrade_capital_cost": 1270,
+      "upgrade_component_cost": 58,
+      "upgrade_time_minutes": 7.6,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 6,
+      "output_per_hour": 263.85,
+      "upgrade_capital_cost": 1968,
+      "upgrade_component_cost": 85,
+      "upgrade_time_minutes": 11.4,
+      "storage_hours": 31.5
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 7,
+      "output_per_hour": 327.17,
+      "upgrade_capital_cost": 3051,
+      "upgrade_component_cost": 126,
+      "upgrade_time_minutes": 17.1,
+      "storage_hours": 33.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 8,
+      "output_per_hour": 405.69,
+      "upgrade_capital_cost": 4729,
+      "upgrade_component_cost": 187,
+      "upgrade_time_minutes": 25.6,
+      "storage_hours": 34.5
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 9,
+      "output_per_hour": 503.06,
+      "upgrade_capital_cost": 7330,
+      "upgrade_component_cost": 276,
+      "upgrade_time_minutes": 38.4,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 10,
+      "output_per_hour": 623.79,
+      "upgrade_capital_cost": 11361,
+      "upgrade_component_cost": 409,
+      "upgrade_time_minutes": 57.7,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 11,
+      "output_per_hour": 773.5,
+      "upgrade_capital_cost": 17609,
+      "upgrade_component_cost": 605,
+      "upgrade_time_minutes": 86.5,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 12,
+      "output_per_hour": 959.14,
+      "upgrade_capital_cost": 27294,
+      "upgrade_component_cost": 895,
+      "upgrade_time_minutes": 129.7,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 1,
+      "output_per_hour": 150.0,
+      "upgrade_capital_cost": 260,
+      "upgrade_component_cost": 18,
+      "upgrade_time_minutes": 2.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 2,
+      "output_per_hour": 186.0,
+      "upgrade_capital_cost": 403,
+      "upgrade_component_cost": 27,
+      "upgrade_time_minutes": 3.0,
+      "storage_hours": 25.5
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 3,
+      "output_per_hour": 230.64,
+      "upgrade_capital_cost": 625,
+      "upgrade_component_cost": 39,
+      "upgrade_time_minutes": 4.5,
+      "storage_hours": 27.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 4,
+      "output_per_hour": 285.99,
+      "upgrade_capital_cost": 968,
+      "upgrade_component_cost": 58,
+      "upgrade_time_minutes": 6.8,
+      "storage_hours": 28.5
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 5,
+      "output_per_hour": 354.63,
+      "upgrade_capital_cost": 1501,
+      "upgrade_component_cost": 86,
+      "upgrade_time_minutes": 10.1,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 6,
+      "output_per_hour": 439.74,
+      "upgrade_capital_cost": 2326,
+      "upgrade_component_cost": 128,
+      "upgrade_time_minutes": 15.2,
+      "storage_hours": 31.5
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 7,
+      "output_per_hour": 545.28,
+      "upgrade_capital_cost": 3605,
+      "upgrade_component_cost": 189,
+      "upgrade_time_minutes": 22.8,
+      "storage_hours": 33.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 8,
+      "output_per_hour": 676.15,
+      "upgrade_capital_cost": 5588,
+      "upgrade_component_cost": 280,
+      "upgrade_time_minutes": 34.2,
+      "storage_hours": 34.5
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 9,
+      "output_per_hour": 838.43,
+      "upgrade_capital_cost": 8662,
+      "upgrade_component_cost": 414,
+      "upgrade_time_minutes": 51.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 10,
+      "output_per_hour": 1039.65,
+      "upgrade_capital_cost": 13426,
+      "upgrade_component_cost": 613,
+      "upgrade_time_minutes": 76.9,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 11,
+      "output_per_hour": 1289.16,
+      "upgrade_capital_cost": 20811,
+      "upgrade_component_cost": 908,
+      "upgrade_time_minutes": 115.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 12,
+      "output_per_hour": 1598.56,
+      "upgrade_capital_cost": 32257,
+      "upgrade_component_cost": 1343,
+      "upgrade_time_minutes": 173.0,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 1,
+      "output_per_hour": 18.0,
+      "upgrade_capital_cost": 320,
+      "upgrade_component_cost": 8,
+      "upgrade_time_minutes": 2.5,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 2,
+      "output_per_hour": 22.32,
+      "upgrade_capital_cost": 496,
+      "upgrade_component_cost": 12,
+      "upgrade_time_minutes": 3.8,
+      "storage_hours": 25.5
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 3,
+      "output_per_hour": 27.68,
+      "upgrade_capital_cost": 769,
+      "upgrade_component_cost": 18,
+      "upgrade_time_minutes": 5.6,
+      "storage_hours": 27.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 4,
+      "output_per_hour": 34.32,
+      "upgrade_capital_cost": 1192,
+      "upgrade_component_cost": 26,
+      "upgrade_time_minutes": 8.4,
+      "storage_hours": 28.5
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 5,
+      "output_per_hour": 42.56,
+      "upgrade_capital_cost": 1847,
+      "upgrade_component_cost": 38,
+      "upgrade_time_minutes": 12.7,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 6,
+      "output_per_hour": 52.77,
+      "upgrade_capital_cost": 2863,
+      "upgrade_component_cost": 57,
+      "upgrade_time_minutes": 19.0,
+      "storage_hours": 31.5
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 7,
+      "output_per_hour": 65.43,
+      "upgrade_capital_cost": 4438,
+      "upgrade_component_cost": 84,
+      "upgrade_time_minutes": 28.5,
+      "storage_hours": 33.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 8,
+      "output_per_hour": 81.14,
+      "upgrade_capital_cost": 6878,
+      "upgrade_component_cost": 124,
+      "upgrade_time_minutes": 42.7,
+      "storage_hours": 34.5
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 9,
+      "output_per_hour": 100.61,
+      "upgrade_capital_cost": 10661,
+      "upgrade_component_cost": 184,
+      "upgrade_time_minutes": 64.1,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 10,
+      "output_per_hour": 124.76,
+      "upgrade_capital_cost": 16525,
+      "upgrade_component_cost": 273,
+      "upgrade_time_minutes": 96.1,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 11,
+      "output_per_hour": 154.7,
+      "upgrade_capital_cost": 25613,
+      "upgrade_component_cost": 403,
+      "upgrade_time_minutes": 144.2,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 12,
+      "output_per_hour": 191.83,
+      "upgrade_capital_cost": 39701,
+      "upgrade_component_cost": 597,
+      "upgrade_time_minutes": 216.2,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 1,
+      "output_per_hour": 8.0,
+      "upgrade_capital_cost": 340,
+      "upgrade_component_cost": 22,
+      "upgrade_time_minutes": 3.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 2,
+      "output_per_hour": 9.92,
+      "upgrade_capital_cost": 527,
+      "upgrade_component_cost": 33,
+      "upgrade_time_minutes": 4.5,
+      "storage_hours": 25.5
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 3,
+      "output_per_hour": 12.3,
+      "upgrade_capital_cost": 817,
+      "upgrade_component_cost": 48,
+      "upgrade_time_minutes": 6.8,
+      "storage_hours": 27.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 4,
+      "output_per_hour": 15.25,
+      "upgrade_capital_cost": 1266,
+      "upgrade_component_cost": 71,
+      "upgrade_time_minutes": 10.1,
+      "storage_hours": 28.5
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 5,
+      "output_per_hour": 18.91,
+      "upgrade_capital_cost": 1962,
+      "upgrade_component_cost": 106,
+      "upgrade_time_minutes": 15.2,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 6,
+      "output_per_hour": 23.45,
+      "upgrade_capital_cost": 3042,
+      "upgrade_component_cost": 156,
+      "upgrade_time_minutes": 22.8,
+      "storage_hours": 31.5
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 7,
+      "output_per_hour": 29.08,
+      "upgrade_capital_cost": 4715,
+      "upgrade_component_cost": 231,
+      "upgrade_time_minutes": 34.2,
+      "storage_hours": 33.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 8,
+      "output_per_hour": 36.06,
+      "upgrade_capital_cost": 7308,
+      "upgrade_component_cost": 342,
+      "upgrade_time_minutes": 51.3,
+      "storage_hours": 34.5
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 9,
+      "output_per_hour": 44.72,
+      "upgrade_capital_cost": 11327,
+      "upgrade_component_cost": 506,
+      "upgrade_time_minutes": 76.9,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 10,
+      "output_per_hour": 55.45,
+      "upgrade_capital_cost": 17558,
+      "upgrade_component_cost": 750,
+      "upgrade_time_minutes": 115.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 11,
+      "output_per_hour": 68.76,
+      "upgrade_capital_cost": 27214,
+      "upgrade_component_cost": 1109,
+      "upgrade_time_minutes": 173.0,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 12,
+      "output_per_hour": 85.26,
+      "upgrade_capital_cost": 42182,
+      "upgrade_component_cost": 1642,
+      "upgrade_time_minutes": 259.5,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 1,
+      "output_per_hour": 0.9,
+      "upgrade_capital_cost": 380,
+      "upgrade_component_cost": 26,
+      "upgrade_time_minutes": 3.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 2,
+      "output_per_hour": 1.12,
+      "upgrade_capital_cost": 589,
+      "upgrade_component_cost": 38,
+      "upgrade_time_minutes": 4.5,
+      "storage_hours": 25.5
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 3,
+      "output_per_hour": 1.38,
+      "upgrade_capital_cost": 913,
+      "upgrade_component_cost": 57,
+      "upgrade_time_minutes": 6.8,
+      "storage_hours": 27.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 4,
+      "output_per_hour": 1.72,
+      "upgrade_capital_cost": 1415,
+      "upgrade_component_cost": 84,
+      "upgrade_time_minutes": 10.1,
+      "storage_hours": 28.5
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 5,
+      "output_per_hour": 2.13,
+      "upgrade_capital_cost": 2193,
+      "upgrade_component_cost": 125,
+      "upgrade_time_minutes": 15.2,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 6,
+      "output_per_hour": 2.64,
+      "upgrade_capital_cost": 3400,
+      "upgrade_component_cost": 185,
+      "upgrade_time_minutes": 22.8,
+      "storage_hours": 31.5
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 7,
+      "output_per_hour": 3.27,
+      "upgrade_capital_cost": 5270,
+      "upgrade_component_cost": 273,
+      "upgrade_time_minutes": 34.2,
+      "storage_hours": 33.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 8,
+      "output_per_hour": 4.06,
+      "upgrade_capital_cost": 8168,
+      "upgrade_component_cost": 404,
+      "upgrade_time_minutes": 51.3,
+      "storage_hours": 34.5
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 9,
+      "output_per_hour": 5.03,
+      "upgrade_capital_cost": 12660,
+      "upgrade_component_cost": 599,
+      "upgrade_time_minutes": 76.9,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 10,
+      "output_per_hour": 6.24,
+      "upgrade_capital_cost": 19623,
+      "upgrade_component_cost": 886,
+      "upgrade_time_minutes": 115.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 11,
+      "output_per_hour": 7.73,
+      "upgrade_capital_cost": 30416,
+      "upgrade_component_cost": 1311,
+      "upgrade_time_minutes": 173.0,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 12,
+      "output_per_hour": 9.59,
+      "upgrade_capital_cost": 47145,
+      "upgrade_component_cost": 1940,
+      "upgrade_time_minutes": 259.5,
+      "storage_hours": 36.0
+    }
+  ],
+  "facility_energy_base_demands": {
+    "Veri Merkezi": 70.0,
+    "Robotik Atölye": 35.0,
+    "Araştırma Laboratuvarı": 45.0,
+    "Güvenlik Operasyon Merkezi": 30.0
+  },
+  "facility_summary": [
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 1,
+      "output_per_hour": 90.0,
+      "upgrade_capital_cost": 220,
+      "upgrade_component_cost": 12,
+      "upgrade_time_minutes": 1.5,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 5,
+      "output_per_hour": 212.78,
+      "upgrade_capital_cost": 1270,
+      "upgrade_component_cost": 58,
+      "upgrade_time_minutes": 7.6,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 10,
+      "output_per_hour": 623.79,
+      "upgrade_capital_cost": 11361,
+      "upgrade_component_cost": 409,
+      "upgrade_time_minutes": 57.7,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Mikro Şebeke",
+      "output_kind": "Enerji",
+      "level": 12,
+      "output_per_hour": 959.14,
+      "upgrade_capital_cost": 27294,
+      "upgrade_component_cost": 895,
+      "upgrade_time_minutes": 129.7,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 1,
+      "output_per_hour": 150.0,
+      "upgrade_capital_cost": 260,
+      "upgrade_component_cost": 18,
+      "upgrade_time_minutes": 2.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 5,
+      "output_per_hour": 354.63,
+      "upgrade_capital_cost": 1501,
+      "upgrade_component_cost": 86,
+      "upgrade_time_minutes": 10.1,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 10,
+      "output_per_hour": 1039.65,
+      "upgrade_capital_cost": 13426,
+      "upgrade_component_cost": 613,
+      "upgrade_time_minutes": 76.9,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Veri Merkezi",
+      "output_kind": "İşlem Gücü",
+      "level": 12,
+      "output_per_hour": 1598.56,
+      "upgrade_capital_cost": 32257,
+      "upgrade_component_cost": 1343,
+      "upgrade_time_minutes": 173.0,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 1,
+      "output_per_hour": 18.0,
+      "upgrade_capital_cost": 320,
+      "upgrade_component_cost": 8,
+      "upgrade_time_minutes": 2.5,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 5,
+      "output_per_hour": 42.56,
+      "upgrade_capital_cost": 1847,
+      "upgrade_component_cost": 38,
+      "upgrade_time_minutes": 12.7,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 10,
+      "output_per_hour": 124.76,
+      "upgrade_capital_cost": 16525,
+      "upgrade_component_cost": 273,
+      "upgrade_time_minutes": 96.1,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Robotik Atölye",
+      "output_kind": "Bileşen",
+      "level": 12,
+      "output_per_hour": 191.83,
+      "upgrade_capital_cost": 39701,
+      "upgrade_component_cost": 597,
+      "upgrade_time_minutes": 216.2,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 1,
+      "output_per_hour": 8.0,
+      "upgrade_capital_cost": 340,
+      "upgrade_component_cost": 22,
+      "upgrade_time_minutes": 3.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 5,
+      "output_per_hour": 18.91,
+      "upgrade_capital_cost": 1962,
+      "upgrade_component_cost": 106,
+      "upgrade_time_minutes": 15.2,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 10,
+      "output_per_hour": 55.45,
+      "upgrade_capital_cost": 17558,
+      "upgrade_component_cost": 750,
+      "upgrade_time_minutes": 115.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Araştırma Laboratuvarı",
+      "output_kind": "Uzmanlık",
+      "level": 12,
+      "output_per_hour": 85.26,
+      "upgrade_capital_cost": 42182,
+      "upgrade_component_cost": 1642,
+      "upgrade_time_minutes": 259.5,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 1,
+      "output_per_hour": 0.9,
+      "upgrade_capital_cost": 380,
+      "upgrade_component_cost": 26,
+      "upgrade_time_minutes": 3.0,
+      "storage_hours": 24.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 5,
+      "output_per_hour": 2.13,
+      "upgrade_capital_cost": 2193,
+      "upgrade_component_cost": 125,
+      "upgrade_time_minutes": 15.2,
+      "storage_hours": 30.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 10,
+      "output_per_hour": 6.24,
+      "upgrade_capital_cost": 19623,
+      "upgrade_component_cost": 886,
+      "upgrade_time_minutes": 115.3,
+      "storage_hours": 36.0
+    },
+    {
+      "facility": "Güvenlik Operasyon Merkezi",
+      "output_kind": "Isı Azaltımı",
+      "level": 12,
+      "output_per_hour": 9.59,
+      "upgrade_capital_cost": 47145,
+      "upgrade_component_cost": 1940,
+      "upgrade_time_minutes": 259.5,
+      "storage_hours": 36.0
+    }
+  ],
+  "activity_profiles": [
+    {
+      "profile": "Bakım",
+      "operations_per_day": 0,
+      "economic_bonus": 0.0,
+      "daily_progress_index": 100.0
+    },
+    {
+      "profile": "Kısa",
+      "operations_per_day": 2,
+      "economic_bonus": 0.0879,
+      "daily_progress_index": 108.79
+    },
+    {
+      "profile": "Düzenli",
+      "operations_per_day": 5,
+      "economic_bonus": 0.1433,
+      "daily_progress_index": 114.33
+    },
+    {
+      "profile": "Yoğun",
+      "operations_per_day": 10,
+      "economic_bonus": 0.1918,
+      "daily_progress_index": 119.18
+    },
+    {
+      "profile": "Maraton",
+      "operations_per_day": 30,
+      "economic_bonus": 0.2,
+      "daily_progress_index": 120.0
+    }
+  ],
+  "ledger_progression_profiles": [
+    {
+      "operations_per_day": 2,
+      "days": 30,
+      "facility_credit": 30000.0,
+      "operation_reward_credit": 2636.67,
+      "operation_cost_debit": 922.83,
+      "upgrade_research_sink_debit": 8159.17,
+      "net_progression_value": 23554.67
+    },
+    {
+      "operations_per_day": 10,
+      "days": 30,
+      "facility_credit": 30000.0,
+      "operation_reward_credit": 5754.95,
+      "operation_cost_debit": 2014.23,
+      "upgrade_research_sink_debit": 8938.74,
+      "net_progression_value": 24801.98
+    }
+  ],
+  "market_series": [
+    {
+      "day": 1,
+      "market_index": 0.9882
+    },
+    {
+      "day": 2,
+      "market_index": 0.9461
+    },
+    {
+      "day": 3,
+      "market_index": 1.0237
+    },
+    {
+      "day": 4,
+      "market_index": 1.051
+    },
+    {
+      "day": 5,
+      "market_index": 1.0806
+    },
+    {
+      "day": 6,
+      "market_index": 1.0611
+    },
+    {
+      "day": 7,
+      "market_index": 1.0697
+    },
+    {
+      "day": 8,
+      "market_index": 1.0324
+    },
+    {
+      "day": 9,
+      "market_index": 1.0556
+    },
+    {
+      "day": 10,
+      "market_index": 1.0312
+    },
+    {
+      "day": 11,
+      "market_index": 1.011
+    },
+    {
+      "day": 12,
+      "market_index": 1.0343
+    },
+    {
+      "day": 13,
+      "market_index": 1.0338
+    },
+    {
+      "day": 14,
+      "market_index": 1.0158
+    },
+    {
+      "day": 15,
+      "market_index": 1.0329
+    },
+    {
+      "day": 16,
+      "market_index": 1.0487
+    },
+    {
+      "day": 17,
+      "market_index": 1.0357
+    },
+    {
+      "day": 18,
+      "market_index": 1.0431
+    },
+    {
+      "day": 19,
+      "market_index": 0.9666
+    },
+    {
+      "day": 20,
+      "market_index": 0.9856
+    },
+    {
+      "day": 21,
+      "market_index": 0.9465
+    },
+    {
+      "day": 22,
+      "market_index": 0.9415
+    },
+    {
+      "day": 23,
+      "market_index": 0.9331
+    },
+    {
+      "day": 24,
+      "market_index": 0.9244
+    },
+    {
+      "day": 25,
+      "market_index": 0.9309
+    },
+    {
+      "day": 26,
+      "market_index": 0.9303
+    },
+    {
+      "day": 27,
+      "market_index": 0.9814
+    },
+    {
+      "day": 28,
+      "market_index": 1.0748
+    },
+    {
+      "day": 29,
+      "market_index": 1.1237
+    },
+    {
+      "day": 30,
+      "market_index": 1.15
+    },
+    {
+      "day": 31,
+      "market_index": 1.1082
+    },
+    {
+      "day": 32,
+      "market_index": 1.0344
+    },
+    {
+      "day": 33,
+      "market_index": 0.9567
+    },
+    {
+      "day": 34,
+      "market_index": 0.945
+    },
+    {
+      "day": 35,
+      "market_index": 0.9723
+    },
+    {
+      "day": 36,
+      "market_index": 0.9423
+    },
+    {
+      "day": 37,
+      "market_index": 0.9218
+    },
+    {
+      "day": 38,
+      "market_index": 0.998
+    },
+    {
+      "day": 39,
+      "market_index": 0.9603
+    },
+    {
+      "day": 40,
+      "market_index": 0.9074
+    },
+    {
+      "day": 41,
+      "market_index": 0.9503
+    },
+    {
+      "day": 42,
+      "market_index": 0.9755
+    },
+    {
+      "day": 43,
+      "market_index": 0.9949
+    },
+    {
+      "day": 44,
+      "market_index": 0.9902
+    },
+    {
+      "day": 45,
+      "market_index": 0.9574
+    },
+    {
+      "day": 46,
+      "market_index": 1.0065
+    },
+    {
+      "day": 47,
+      "market_index": 0.9397
+    },
+    {
+      "day": 48,
+      "market_index": 0.9741
+    },
+    {
+      "day": 49,
+      "market_index": 0.9771
+    },
+    {
+      "day": 50,
+      "market_index": 0.9687
+    },
+    {
+      "day": 51,
+      "market_index": 0.9529
+    },
+    {
+      "day": 52,
+      "market_index": 0.935
+    },
+    {
+      "day": 53,
+      "market_index": 0.9548
+    },
+    {
+      "day": 54,
+      "market_index": 1.0368
+    },
+    {
+      "day": 55,
+      "market_index": 1.0447
+    },
+    {
+      "day": 56,
+      "market_index": 1.0695
+    },
+    {
+      "day": 57,
+      "market_index": 1.079
+    },
+    {
+      "day": 58,
+      "market_index": 1.1311
+    },
+    {
+      "day": 59,
+      "market_index": 1.0942
+    },
+    {
+      "day": 60,
+      "market_index": 1.0679
+    },
+    {
+      "day": 61,
+      "market_index": 0.9897
+    },
+    {
+      "day": 62,
+      "market_index": 1.0626
+    },
+    {
+      "day": 63,
+      "market_index": 0.973
+    },
+    {
+      "day": 64,
+      "market_index": 0.998
+    },
+    {
+      "day": 65,
+      "market_index": 0.9665
+    },
+    {
+      "day": 66,
+      "market_index": 0.9498
+    },
+    {
+      "day": 67,
+      "market_index": 0.9678
+    },
+    {
+      "day": 68,
+      "market_index": 0.8972
+    },
+    {
+      "day": 69,
+      "market_index": 0.958
+    },
+    {
+      "day": 70,
+      "market_index": 0.998
+    },
+    {
+      "day": 71,
+      "market_index": 1.0201
+    },
+    {
+      "day": 72,
+      "market_index": 0.9949
+    },
+    {
+      "day": 73,
+      "market_index": 0.9762
+    },
+    {
+      "day": 74,
+      "market_index": 1.0134
+    },
+    {
+      "day": 75,
+      "market_index": 0.9349
+    },
+    {
+      "day": 76,
+      "market_index": 0.9263
+    },
+    {
+      "day": 77,
+      "market_index": 1.0147
+    },
+    {
+      "day": 78,
+      "market_index": 1.0378
+    },
+    {
+      "day": 79,
+      "market_index": 1.0022
+    },
+    {
+      "day": 80,
+      "market_index": 1.0162
+    },
+    {
+      "day": 81,
+      "market_index": 1.038
+    },
+    {
+      "day": 82,
+      "market_index": 0.978
+    },
+    {
+      "day": 83,
+      "market_index": 0.9989
+    },
+    {
+      "day": 84,
+      "market_index": 1.025
+    },
+    {
+      "day": 85,
+      "market_index": 1.0247
+    },
+    {
+      "day": 86,
+      "market_index": 0.9887
+    },
+    {
+      "day": 87,
+      "market_index": 0.9798
+    },
+    {
+      "day": 88,
+      "market_index": 0.9626
+    },
+    {
+      "day": 89,
+      "market_index": 1.0226
+    },
+    {
+      "day": 90,
+      "market_index": 0.9657
+    },
+    {
+      "day": 91,
+      "market_index": 1.022
+    },
+    {
+      "day": 92,
+      "market_index": 1.0498
+    },
+    {
+      "day": 93,
+      "market_index": 1.0789
+    },
+    {
+      "day": 94,
+      "market_index": 1.0272
+    },
+    {
+      "day": 95,
+      "market_index": 1.0416
+    },
+    {
+      "day": 96,
+      "market_index": 1.0696
+    },
+    {
+      "day": 97,
+      "market_index": 1.0657
+    },
+    {
+      "day": 98,
+      "market_index": 1.1246
+    },
+    {
+      "day": 99,
+      "market_index": 1.002
+    },
+    {
+      "day": 100,
+      "market_index": 1.0101
+    },
+    {
+      "day": 101,
+      "market_index": 1.0118
+    },
+    {
+      "day": 102,
+      "market_index": 0.9946
+    },
+    {
+      "day": 103,
+      "market_index": 1.0516
+    },
+    {
+      "day": 104,
+      "market_index": 1.0468
+    },
+    {
+      "day": 105,
+      "market_index": 1.0486
+    },
+    {
+      "day": 106,
+      "market_index": 1.1054
+    },
+    {
+      "day": 107,
+      "market_index": 1.0495
+    },
+    {
+      "day": 108,
+      "market_index": 1.0214
+    },
+    {
+      "day": 109,
+      "market_index": 1.0219
+    },
+    {
+      "day": 110,
+      "market_index": 0.9673
+    },
+    {
+      "day": 111,
+      "market_index": 0.9758
+    },
+    {
+      "day": 112,
+      "market_index": 1.0157
+    },
+    {
+      "day": 113,
+      "market_index": 0.9632
+    },
+    {
+      "day": 114,
+      "market_index": 0.9502
+    },
+    {
+      "day": 115,
+      "market_index": 0.9754
+    },
+    {
+      "day": 116,
+      "market_index": 0.9357
+    },
+    {
+      "day": 117,
+      "market_index": 0.9243
+    },
+    {
+      "day": 118,
+      "market_index": 0.9403
+    },
+    {
+      "day": 119,
+      "market_index": 0.9768
+    },
+    {
+      "day": 120,
+      "market_index": 0.9716
+    }
+  ],
+  "adaptation_table": [
+    {
+      "exposure": 0,
+      "defense_modifier": 0.0
+    },
+    {
+      "exposure": 1,
+      "defense_modifier": 1.73
+    },
+    {
+      "exposure": 3,
+      "defense_modifier": 3.47
+    },
+    {
+      "exposure": 6,
+      "defense_modifier": 4.86
+    },
+    {
+      "exposure": 10,
+      "defense_modifier": 5.99
+    },
+    {
+      "exposure": 20,
+      "defense_modifier": 7.61
+    }
+  ],
+  "xp_table": [
+    {
+      "level": 1,
+      "xp_to_next": 60,
+      "cumulative_xp": 60
+    },
+    {
+      "level": 2,
+      "xp_to_next": 153,
+      "cumulative_xp": 213
+    },
+    {
+      "level": 3,
+      "xp_to_next": 264,
+      "cumulative_xp": 477
+    },
+    {
+      "level": 4,
+      "xp_to_next": 390,
+      "cumulative_xp": 867
+    },
+    {
+      "level": 5,
+      "xp_to_next": 527,
+      "cumulative_xp": 1394
+    },
+    {
+      "level": 6,
+      "xp_to_next": 674,
+      "cumulative_xp": 2068
+    },
+    {
+      "level": 7,
+      "xp_to_next": 830,
+      "cumulative_xp": 2898
+    },
+    {
+      "level": 8,
+      "xp_to_next": 994,
+      "cumulative_xp": 3892
+    },
+    {
+      "level": 9,
+      "xp_to_next": 1165,
+      "cumulative_xp": 5057
+    },
+    {
+      "level": 10,
+      "xp_to_next": 1343,
+      "cumulative_xp": 6400
+    },
+    {
+      "level": 11,
+      "xp_to_next": 1528,
+      "cumulative_xp": 7928
+    },
+    {
+      "level": 12,
+      "xp_to_next": 1718,
+      "cumulative_xp": 9646
+    },
+    {
+      "level": 13,
+      "xp_to_next": 1914,
+      "cumulative_xp": 11560
+    },
+    {
+      "level": 14,
+      "xp_to_next": 2116,
+      "cumulative_xp": 13676
+    },
+    {
+      "level": 15,
+      "xp_to_next": 2322,
+      "cumulative_xp": 15998
+    },
+    {
+      "level": 16,
+      "xp_to_next": 2533,
+      "cumulative_xp": 18531
+    },
+    {
+      "level": 17,
+      "xp_to_next": 2750,
+      "cumulative_xp": 21281
+    },
+    {
+      "level": 18,
+      "xp_to_next": 2970,
+      "cumulative_xp": 24251
+    },
+    {
+      "level": 19,
+      "xp_to_next": 3195,
+      "cumulative_xp": 27446
+    },
+    {
+      "level": 20,
+      "xp_to_next": 3424,
+      "cumulative_xp": 30870
+    }
+  ],
+  "target_tiers": [
+    {
+      "tier": 1,
+      "label": "Yerel düğüm",
+      "hardening": 30,
+      "monitoring": 25,
+      "segmentation": 20,
+      "resilience": 25,
+      "noise": 6,
+      "compute_cost": 120,
+      "energy_cost": 18,
+      "base_capital": 180,
+      "base_evidence": 5,
+      "defense_rating": 25.3
+    },
+    {
+      "tier": 2,
+      "label": "Kurumsal ağ",
+      "hardening": 42,
+      "monitoring": 36,
+      "segmentation": 32,
+      "resilience": 38,
+      "noise": 8,
+      "compute_cost": 260,
+      "energy_cost": 36,
+      "base_capital": 360,
+      "base_evidence": 9,
+      "defense_rating": 37.24
+    },
+    {
+      "tier": 3,
+      "label": "Sektörel omurga",
+      "hardening": 54,
+      "monitoring": 50,
+      "segmentation": 46,
+      "resilience": 50,
+      "noise": 10,
+      "compute_cost": 520,
+      "energy_cost": 68,
+      "base_capital": 680,
+      "base_evidence": 15,
+      "defense_rating": 50.24
+    },
+    {
+      "tier": 4,
+      "label": "Kritik hizmet",
+      "hardening": 66,
+      "monitoring": 63,
+      "segmentation": 60,
+      "resilience": 64,
+      "noise": 12,
+      "compute_cost": 900,
+      "energy_cost": 110,
+      "base_capital": 1200,
+      "base_evidence": 24,
+      "defense_rating": 63.4
+    },
+    {
+      "tier": 5,
+      "label": "Otonom çekirdek",
+      "hardening": 78,
+      "monitoring": 76,
+      "segmentation": 73,
+      "resilience": 80,
+      "noise": 14,
+      "compute_cost": 1400,
+      "energy_cost": 165,
+      "base_capital": 2000,
+      "base_evidence": 36,
+      "defense_rating": 76.78
+    }
+  ],
+  "audit_checks": [
+    "Sürüm, half-away yuvarlama, olasılık eşiği, PCG32 golden/stream izolasyonu, Node sınırı, unutma ve dünya çevrimi planla eşleşiyor.",
+    "Beş tesisin üretim ve maliyet eğrileri monoton; süreler 6 saat tavanını aşmıyor.",
+    "Enerji çözümleyicisi öncelik/id sırasını, korunumu ve doğrusal kısmi verimi sağlıyor.",
+    "Eş-kademe başarı oranları %60-%85 tasarım bandında.",
+    "Isı yükseldikçe tespit olasılığı her profilde artıyor.",
+    "Hedef kademesi yükseldikçe başarı oranı her profilde düşüyor.",
+    "Node Routing etkisi nötrden en iyi skora en fazla +10 yüzde puan; en kötüden nötre en fazla +10 puan.",
+    "30 günlük normalize ledger'da 2 ve 10 operasyon/gün ilerleme farkı %5.3; hedef <%20.",
+    "Pazar yapılandırması ve zorlanmış uç şoklar 0,85-1,15 koridoruna kilitli.",
+    "Teklif/teminat matematiği hazırlık ve adil fiyatı ödüllendiriyor; iadeler sıralı ve sınırlı.",
+    "Yükleme/mod, Node geçerliliği, sürümlü planlı çözüm ve 0-100 dünya uygulaması sınır kontrollerini geçiyor.",
+    "NPC maruziyeti her 6 saatlik çevrimde önce %25 unutuluyor; adaptasyon monoton ve +10 puanda sınırlı."
+  ]
+}

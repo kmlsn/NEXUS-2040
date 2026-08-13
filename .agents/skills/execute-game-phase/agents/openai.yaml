@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execute Game Phase"
+  short_description: "Runs the active phase from GAME_PLAN.md"
+  default_prompt: "Use $execute-game-phase to complete the next active task in GAME_PLAN.md."

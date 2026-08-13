@@ -1,0 +1,549 @@
+{
+  "metadata": {
+    "seed": 20260809,
+    "simulations_per_matched_pair": 100000
+  },
+  "formulas": {
+    "success": "0.08 + 0.84 * sigmoid((A + tool - D)/11 + 0.18*ln(1+intel) + skill - heat_penalty + support)",
+    "detection": "0.03 + 0.55 * sigmoid((monitoring + noise + score_noise + 0.25*heat - stealth - cover)/12)",
+    "facility_rate": "base_rate * 1.28^(level-1)",
+    "facility_cost": "260 * 1.62^(level-1)",
+    "facility_time_minutes": "2 * 1.55^(level-1)",
+    "xp_to_next": "60 * level^1.35"
+  },
+  "matched_simulation": [
+    {
+      "player": "Çırak",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 37.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 54.98,
+      "success_rate": 0.7807,
+      "detection_rate": 0.1893,
+      "success_and_undetected_rate": 0.6332,
+      "expected_credits_per_attempt": 129.33,
+      "expected_evidence_per_attempt": 3.59,
+      "expected_heat_gain": 6.3
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 47.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 58.01,
+      "success_rate": 0.7932,
+      "detection_rate": 0.1986,
+      "success_and_undetected_rate": 0.6355,
+      "expected_credits_per_attempt": 265.14,
+      "expected_evidence_per_attempt": 6.63,
+      "expected_heat_gain": 8.33
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 57.54,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 59.98,
+      "success_rate": 0.7743,
+      "detection_rate": 0.2527,
+      "success_and_undetected_rate": 0.5797,
+      "expected_credits_per_attempt": 482.68,
+      "expected_evidence_per_attempt": 10.65,
+      "expected_heat_gain": 10.87
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 64.14,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 62.01,
+      "success_rate": 0.7184,
+      "detection_rate": 0.3457,
+      "success_and_undetected_rate": 0.4702,
+      "expected_credits_per_attempt": 763.5,
+      "expected_evidence_per_attempt": 15.27,
+      "expected_heat_gain": 13.9
+    },
+    {
+      "player": "Elit",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 69.77,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 64.99,
+      "success_rate": 0.639,
+      "detection_rate": 0.4233,
+      "success_and_undetected_rate": 0.3687,
+      "expected_credits_per_attempt": 1096.46,
+      "expected_evidence_per_attempt": 19.74,
+      "expected_heat_gain": 16.93
+    }
+  ],
+  "cross_tier_simulation": [
+    {
+      "player": "Çırak",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 37.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 55.01,
+      "success_rate": 0.7791,
+      "detection_rate": 0.1878,
+      "success_and_undetected_rate": 0.633,
+      "expected_credits_per_attempt": 129.17,
+      "expected_evidence_per_attempt": 3.59,
+      "expected_heat_gain": 6.29
+    },
+    {
+      "player": "Çırak",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 37.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 54.9,
+      "success_rate": 0.6049,
+      "detection_rate": 0.3223,
+      "success_and_undetected_rate": 0.4109,
+      "expected_credits_per_attempt": 186.08,
+      "expected_evidence_per_attempt": 4.65,
+      "expected_heat_gain": 10.15
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 1,
+      "target": "Yerel düğüm",
+      "attack_rating": 47.24,
+      "defense_rating": 25.3,
+      "mean_minigame_score": 57.99,
+      "success_rate": 0.8731,
+      "detection_rate": 0.1029,
+      "success_and_undetected_rate": 0.7834,
+      "expected_credits_per_attempt": 152.44,
+      "expected_evidence_per_attempt": 4.23,
+      "expected_heat_gain": 5.24
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 47.24,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 58.02,
+      "success_rate": 0.7917,
+      "detection_rate": 0.1986,
+      "success_and_undetected_rate": 0.6341,
+      "expected_credits_per_attempt": 264.5,
+      "expected_evidence_per_attempt": 6.61,
+      "expected_heat_gain": 8.34
+    },
+    {
+      "player": "Operatör",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 47.24,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 58.04,
+      "success_rate": 0.6082,
+      "detection_rate": 0.3706,
+      "success_and_undetected_rate": 0.384,
+      "expected_credits_per_attempt": 351.59,
+      "expected_evidence_per_attempt": 7.76,
+      "expected_heat_gain": 12.58
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 2,
+      "target": "Kurumsal ağ",
+      "attack_rating": 57.54,
+      "defense_rating": 37.24,
+      "mean_minigame_score": 59.91,
+      "success_rate": 0.8709,
+      "detection_rate": 0.1147,
+      "success_and_undetected_rate": 0.771,
+      "expected_credits_per_attempt": 304.7,
+      "expected_evidence_per_attempt": 7.62,
+      "expected_heat_gain": 7.35
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 57.54,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 59.97,
+      "success_rate": 0.7749,
+      "detection_rate": 0.2498,
+      "success_and_undetected_rate": 0.5822,
+      "expected_credits_per_attempt": 483.45,
+      "expected_evidence_per_attempt": 10.66,
+      "expected_heat_gain": 10.85
+    },
+    {
+      "player": "Uzman",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 57.54,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 59.96,
+      "success_rate": 0.5754,
+      "detection_rate": 0.4154,
+      "success_and_undetected_rate": 0.3351,
+      "expected_credits_per_attempt": 578.06,
+      "expected_evidence_per_attempt": 11.56,
+      "expected_heat_gain": 15.12
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 3,
+      "target": "Sektörel omurga",
+      "attack_rating": 64.14,
+      "defense_rating": 50.24,
+      "mean_minigame_score": 61.99,
+      "success_rate": 0.8438,
+      "detection_rate": 0.1816,
+      "success_and_undetected_rate": 0.6906,
+      "expected_credits_per_attempt": 547.65,
+      "expected_evidence_per_attempt": 12.08,
+      "expected_heat_gain": 10.01
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 64.14,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 61.97,
+      "success_rate": 0.7177,
+      "detection_rate": 0.3456,
+      "success_and_undetected_rate": 0.4704,
+      "expected_credits_per_attempt": 762.14,
+      "expected_evidence_per_attempt": 15.24,
+      "expected_heat_gain": 13.91
+    },
+    {
+      "player": "Kıdemli",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 64.14,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 61.92,
+      "success_rate": 0.4838,
+      "detection_rate": 0.48,
+      "success_and_undetected_rate": 0.2511,
+      "expected_credits_per_attempt": 782.43,
+      "expected_evidence_per_attempt": 14.08,
+      "expected_heat_gain": 18.13
+    },
+    {
+      "player": "Elit",
+      "target_tier": 4,
+      "target": "Kritik hizmet",
+      "attack_rating": 69.77,
+      "defense_rating": 63.4,
+      "mean_minigame_score": 64.9,
+      "success_rate": 0.8099,
+      "detection_rate": 0.2625,
+      "success_and_undetected_rate": 0.5965,
+      "expected_credits_per_attempt": 906.6,
+      "expected_evidence_per_attempt": 18.13,
+      "expected_heat_gain": 12.82
+    },
+    {
+      "player": "Elit",
+      "target_tier": 5,
+      "target": "Otonom çekirdek",
+      "attack_rating": 69.77,
+      "defense_rating": 76.78,
+      "mean_minigame_score": 65.03,
+      "success_rate": 0.6353,
+      "detection_rate": 0.4245,
+      "success_and_undetected_rate": 0.3674,
+      "expected_credits_per_attempt": 1091.28,
+      "expected_evidence_per_attempt": 19.64,
+      "expected_heat_gain": 16.96
+    }
+  ],
+  "facility_table": [
+    {
+      "level": 1,
+      "compute_rate_per_hour": 160,
+      "network_rate_per_hour": 30,
+      "upgrade_credit_cost": 260,
+      "upgrade_time_minutes": 2.0,
+      "storage_hours": 4.0
+    },
+    {
+      "level": 2,
+      "compute_rate_per_hour": 205,
+      "network_rate_per_hour": 38,
+      "upgrade_credit_cost": 421,
+      "upgrade_time_minutes": 3.1,
+      "storage_hours": 4.5
+    },
+    {
+      "level": 3,
+      "compute_rate_per_hour": 262,
+      "network_rate_per_hour": 48,
+      "upgrade_credit_cost": 682,
+      "upgrade_time_minutes": 4.8,
+      "storage_hours": 4.9
+    },
+    {
+      "level": 4,
+      "compute_rate_per_hour": 336,
+      "network_rate_per_hour": 61,
+      "upgrade_credit_cost": 1105,
+      "upgrade_time_minutes": 7.4,
+      "storage_hours": 5.3
+    },
+    {
+      "level": 5,
+      "compute_rate_per_hour": 429,
+      "network_rate_per_hour": 78,
+      "upgrade_credit_cost": 1791,
+      "upgrade_time_minutes": 11.5,
+      "storage_hours": 5.8
+    },
+    {
+      "level": 6,
+      "compute_rate_per_hour": 550,
+      "network_rate_per_hour": 99,
+      "upgrade_credit_cost": 2901,
+      "upgrade_time_minutes": 17.9,
+      "storage_hours": 6.2
+    },
+    {
+      "level": 7,
+      "compute_rate_per_hour": 704,
+      "network_rate_per_hour": 126,
+      "upgrade_credit_cost": 4700,
+      "upgrade_time_minutes": 27.7,
+      "storage_hours": 6.7
+    },
+    {
+      "level": 8,
+      "compute_rate_per_hour": 901,
+      "network_rate_per_hour": 160,
+      "upgrade_credit_cost": 7613,
+      "upgrade_time_minutes": 43.0,
+      "storage_hours": 7.2
+    },
+    {
+      "level": 9,
+      "compute_rate_per_hour": 1153,
+      "network_rate_per_hour": 203,
+      "upgrade_credit_cost": 12334,
+      "upgrade_time_minutes": 66.6,
+      "storage_hours": 7.6
+    },
+    {
+      "level": 10,
+      "compute_rate_per_hour": 1476,
+      "network_rate_per_hour": 258,
+      "upgrade_credit_cost": 19981,
+      "upgrade_time_minutes": 103.3,
+      "storage_hours": 8
+    },
+    {
+      "level": 11,
+      "compute_rate_per_hour": 1889,
+      "network_rate_per_hour": 327,
+      "upgrade_credit_cost": 32369,
+      "upgrade_time_minutes": 160.1,
+      "storage_hours": 8
+    },
+    {
+      "level": 12,
+      "compute_rate_per_hour": 2418,
+      "network_rate_per_hour": 416,
+      "upgrade_credit_cost": 52437,
+      "upgrade_time_minutes": 248.1,
+      "storage_hours": 8
+    }
+  ],
+  "xp_table": [
+    {
+      "level": 1,
+      "xp_to_next": 60,
+      "cumulative_xp": 60
+    },
+    {
+      "level": 2,
+      "xp_to_next": 153,
+      "cumulative_xp": 213
+    },
+    {
+      "level": 3,
+      "xp_to_next": 264,
+      "cumulative_xp": 477
+    },
+    {
+      "level": 4,
+      "xp_to_next": 390,
+      "cumulative_xp": 867
+    },
+    {
+      "level": 5,
+      "xp_to_next": 527,
+      "cumulative_xp": 1394
+    },
+    {
+      "level": 6,
+      "xp_to_next": 674,
+      "cumulative_xp": 2068
+    },
+    {
+      "level": 7,
+      "xp_to_next": 830,
+      "cumulative_xp": 2898
+    },
+    {
+      "level": 8,
+      "xp_to_next": 994,
+      "cumulative_xp": 3892
+    },
+    {
+      "level": 9,
+      "xp_to_next": 1165,
+      "cumulative_xp": 5057
+    },
+    {
+      "level": 10,
+      "xp_to_next": 1343,
+      "cumulative_xp": 6400
+    },
+    {
+      "level": 11,
+      "xp_to_next": 1528,
+      "cumulative_xp": 7928
+    },
+    {
+      "level": 12,
+      "xp_to_next": 1718,
+      "cumulative_xp": 9646
+    },
+    {
+      "level": 13,
+      "xp_to_next": 1914,
+      "cumulative_xp": 11560
+    },
+    {
+      "level": 14,
+      "xp_to_next": 2116,
+      "cumulative_xp": 13676
+    },
+    {
+      "level": 15,
+      "xp_to_next": 2322,
+      "cumulative_xp": 15998
+    },
+    {
+      "level": 16,
+      "xp_to_next": 2533,
+      "cumulative_xp": 18531
+    },
+    {
+      "level": 17,
+      "xp_to_next": 2750,
+      "cumulative_xp": 21281
+    },
+    {
+      "level": 18,
+      "xp_to_next": 2970,
+      "cumulative_xp": 24251
+    },
+    {
+      "level": 19,
+      "xp_to_next": 3195,
+      "cumulative_xp": 27446
+    },
+    {
+      "level": 20,
+      "xp_to_next": 3424,
+      "cumulative_xp": 30870
+    }
+  ],
+  "target_tiers": [
+    {
+      "tier": 1,
+      "label": "Yerel düğüm",
+      "hardening": 30,
+      "monitoring": 25,
+      "segmentation": 20,
+      "resilience": 25,
+      "noise": 6,
+      "compute_cost": 120,
+      "bandwidth_cost": 18,
+      "base_credits": 180,
+      "base_evidence": 5,
+      "defense_rating": 25.3
+    },
+    {
+      "tier": 2,
+      "label": "Kurumsal ağ",
+      "hardening": 42,
+      "monitoring": 36,
+      "segmentation": 32,
+      "resilience": 38,
+      "noise": 8,
+      "compute_cost": 260,
+      "bandwidth_cost": 36,
+      "base_credits": 360,
+      "base_evidence": 9,
+      "defense_rating": 37.24
+    },
+    {
+      "tier": 3,
+      "label": "Sektörel omurga",
+      "hardening": 54,
+      "monitoring": 50,
+      "segmentation": 46,
+      "resilience": 50,
+      "noise": 10,
+      "compute_cost": 520,
+      "bandwidth_cost": 68,
+      "base_credits": 680,
+      "base_evidence": 15,
+      "defense_rating": 50.24
+    },
+    {
+      "tier": 4,
+      "label": "Kritik hizmet",
+      "hardening": 66,
+      "monitoring": 63,
+      "segmentation": 60,
+      "resilience": 64,
+      "noise": 12,
+      "compute_cost": 900,
+      "bandwidth_cost": 110,
+      "base_credits": 1200,
+      "base_evidence": 24,
+      "defense_rating": 63.4
+    },
+    {
+      "tier": 5,
+      "label": "Otonom çekirdek",
+      "hardening": 78,
+      "monitoring": 76,
+      "segmentation": 73,
+      "resilience": 80,
+      "noise": 14,
+      "compute_cost": 1400,
+      "bandwidth_cost": 165,
+      "base_credits": 2000,
+      "base_evidence": 36,
+      "defense_rating": 76.78
+    }
+  ],
+  "audit_checks": [
+    "Tesis üretimi her seviyede monoton artıyor.",
+    "Tesis maliyeti her seviyede monoton artıyor.",
+    "Eş-kademe başarı oranları %60-%85 tasarım bandında.",
+    "Isı yükseldikçe tespit olasılığı her profilde artıyor.",
+    "Hedef kademesi yükseldikçe başarı oranı her profilde düşüyor."
+  ]
+}

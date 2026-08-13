@@ -1,0 +1,171 @@
+{
+  "input": "C:\\Users\\ksen\\Documents\\ChatGPT\\Siber_Savas_Oyunu\\docs\\NEXUS_2040_Ghost_Grid_GDD_v1.1.docx",
+  "fonts_by_char_count": {
+    "Calibri": 44929,
+    "Consolas": 2965
+  },
+  "direct_run_formatting_runs": 1354,
+  "direct_paragraph_formatting_paragraphs": 1347,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 7,
+      "text": "YAKIN GELECEK TEKNOLOJ\u0130 STRATEJ\u0130S\u0130",
+      "style": "Normal"
+    },
+    {
+      "para_index": 8,
+      "text": "NEXUS 2040: GHOST GRID",
+      "style": "Title"
+    },
+    {
+      "para_index": 11,
+      "text": "Belge s\u00fcr\u00fcm\u00fc: 1.1 - birle\u015fik konsept ve \u00fcretim temeli",
+      "style": "Normal"
+    },
+    {
+      "para_index": 12,
+      "text": "Tarih: 9 A\u011fustos 2026",
+      "style": "Normal"
+    },
+    {
+      "para_index": 14,
+      "text": "Oyuncu rol\u00fc: Ba\u011f\u0131ms\u0131z teknoloji ve siber g\u00fcvenlik konsorsiyumu y\u00f6neticisi",
+      "style": "Normal"
+    },
+    {
+      "para_index": 327,
+      "text": "Karar alan\u0131",
+      "style": "Normal"
+    },
+    {
+      "para_index": 328,
+      "text": "v1.1 karar\u0131",
+      "style": "Normal"
+    },
+    {
+      "para_index": 345,
+      "text": "Ara\u015ft\u0131rma",
+      "style": "Normal"
+    },
+    {
+      "para_index": 346,
+      "text": "Oyuna aktar\u0131lan ilke",
+      "style": "Normal"
+    },
+    {
+      "para_index": 347,
+      "text": "MVP kar\u015f\u0131l\u0131\u011f\u0131",
+      "style": "Normal"
+    },
+    {
+      "para_index": 348,
+      "text": "Aktar\u0131lmayan i\u00e7erik",
+      "style": "Normal"
+    },
+    {
+      "para_index": 385,
+      "text": "Ger\u00e7ek\u00e7i tutulacak",
+      "style": "Normal"
+    },
+    {
+      "para_index": 386,
+      "text": "Kurgulanacak / soyutlanacak",
+      "style": "Normal"
+    },
+    {
+      "para_index": 397,
+      "text": "Doktrin",
+      "style": "Normal"
+    },
+    {
+      "para_index": 398,
+      "text": "Stratejik \u00fcst\u00fcnl\u00fck",
+      "style": "Normal"
+    },
+    {
+      "para_index": 399,
+      "text": "Operasyon tarz\u0131",
+      "style": "Normal"
+    },
+    {
+      "para_index": 400,
+      "text": "Kampanya hedefi",
+      "style": "Normal"
+    },
+    {
+      "para_index": 417,
+      "text": "Hedeflenen estetik",
+      "style": "Normal"
+    },
+    {
+      "para_index": 418,
+      "text": "Mekanik",
+      "style": "Normal"
+    },
+    {
+      "para_index": 419,
+      "text": "Olu\u015fan dinamik",
+      "style": "Normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 7,
+        "run_text": "YAKIN GELECEK TEKNOLOJ\u0130 STRATEJ\u0130S\u0130",
+        "style": "Normal"
+      },
+      {
+        "para_index": 8,
+        "run_text": "NEXUS 2040: GHOST GRID",
+        "style": "Title"
+      },
+      {
+        "para_index": 10,
+        "run_text": "\u00dcr\u00fcn tezi: ",
+        "style": "Callout"
+      },
+      {
+        "para_index": 10,
+        "run_text": "Stratejik katman operasyona neden verir; operasyon stratejik karar\u0131n sonucunu be",
+        "style": "Callout"
+      },
+      {
+        "para_index": 11,
+        "run_text": "Belge s\u00fcr\u00fcm\u00fc: ",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

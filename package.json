@@ -1,0 +1,31 @@
+{
+  "name": "nexus-2040-ghost-grid",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=24.14.0 <25",
+    "pnpm": ">=11.16.0 <12"
+  },
+  "scripts": {
+    "lint": "eslint apps packages scripts --max-warnings=0",
+    "typecheck": "pnpm --filter @nexus/web --filter @nexus/api --filter @nexus/worker --filter @nexus/contracts --filter @nexus/simulation --filter @nexus/content --filter @nexus/ui -r run typecheck",
+    "test": "node scripts/workspace-check.mjs && node scripts/ci-contract-check.mjs && node scripts/local-services-check.mjs --config-only && pnpm --filter @nexus/contracts run test && pnpm --filter @nexus/simulation run test && node scripts/pcg-fixture-check.mjs && node scripts/http-smoke.mjs",
+    "test:integration": "pnpm run services:check && pnpm --filter @nexus/api run test:integration",
+    "test:e2e": "node scripts/deferred-suite.mjs test:e2e",
+    "balance:check": "node scripts/deferred-suite.mjs balance:check",
+    "services:up": "docker compose -f infra/docker-compose.yml up -d --wait",
+    "services:down": "docker compose -f infra/docker-compose.yml down",
+    "services:logs": "docker compose -f infra/docker-compose.yml logs --tail=100",
+    "services:check": "node scripts/local-services-check.mjs",
+    "plan:check": "node scripts/plan-check.mjs",
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run test:integration && pnpm run test:e2e && pnpm run balance:check && pnpm run plan:check"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.2.0",
+    "eslint": "10.8.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0"
+  }
+}

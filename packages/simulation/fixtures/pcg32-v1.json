@@ -1,0 +1,10 @@
+{
+  "formula_version": "balance-1.2",
+  "content_version": "asteria-baseline-0.2",
+  "cases": [
+    { "master_seed": "20260809", "stream_id": "golden", "uint32": [1019786244, 2580556072, 2564031293, 2736638898, 3790840288] },
+    { "master_seed": "20260809", "stream_id": "operation:test-17:success", "uint32": [706581641, 4183736079, 3299825957, 3216471671, 549714135] },
+    { "master_seed": "20260809", "stream_id": "operation:test-17:detection", "uint32": [1315943540, 821769686, 3108290164, 2438609651, 2789710977] }
+  ],
+  "thresholds": [[0, 0], [0.5, 2147483648], [1, 4294967296], [0.0000000004, 0], [0.0000000005, 4]]
+}

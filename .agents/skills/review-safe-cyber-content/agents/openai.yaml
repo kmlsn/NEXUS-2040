@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Safe Cyber Content"
+  short_description: "Checks safe fictional cyber realism"
+  default_prompt: "Use $review-safe-cyber-content to review the selected cyber-themed content for safe realism."

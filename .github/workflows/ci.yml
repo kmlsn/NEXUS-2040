@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  typecheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.16.0, run_install: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.14.0, cache: pnpm }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.16.0, run_install: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.14.0, cache: pnpm }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+
+  integration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.16.0, run_install: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.14.0, cache: pnpm }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm services:up
+      - run: pnpm test:integration
+      - if: failure()
+        run: pnpm services:logs
+      - if: always()
+        run: pnpm services:down
