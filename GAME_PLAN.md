@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.4` 24-36 saatlik lazy accrual ve depolama kapasitesini uygula |
-| Kodlama durumu | `P2.3` tamamlandı; lazy accrual görevi uygulanabilir |
+| Sonraki görev | `P2.5` Ücretsiz inşa/araştırma kuyruğu, bitiş uzlaşması ve iptal iadesini uygula |
+| Kodlama durumu | `P2.4` tamamlandı; inşa/araştırma kuyruğu görevi uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -223,7 +223,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 - [x] **P2.1** Enerji, İşlem Gücü, Bileşen, Sermaye ve Uzmanlık ledger işlemlerini uygula.
 - [x] **P2.2** Beş tesis türünü ve seviye 1-12 veri şemasını oluştur.
 - [x] **P2.3** Enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz.
-- [ ] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
+- [x] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
 - [ ] **P2.5** Ücretsiz inşa/araştırma kuyruğu, bitiş uzlaşması ve iptal iadesini uygula.
 - [ ] **P2.6** Merkez ekranında kaynak nedeni, üretim tahmini ve enerji yetersizliği açıklamasını göster.
 - [ ] **P2.7** Tesis eğrilerini ve 30 günlük tam-ledger aktif/seyrek oyuncu karşılaştırmasını `balance-1.2` matematik sözleşmesine göre doğrula.
@@ -585,6 +585,9 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | D-016 | Bağımsız `lifecycle_game_tester` her davranış görevi, faz kapısı, final release ve yayın sonrası uyumlulukta zorunludur. | Değişmez | Kullanıcı test kapsamını açıkça değiştirirse. |
 | D-017 | Kaynak ledger serileştirmesi `1 kaynak = 1_000_000` mikro-birim ve half-away-from-zero tek-dönüşüm kuralını kullanır; bu bir encoding sözleşmesidir, ekonomi katsayılarını veya `balance-1.2` sürümünü değiştirmez. | Kabul | Birim ölçeği ya da yuvarlama ancak karar, model ve çapraz-çalışma zamanı kanıtı birlikte güncellenirse değişir. |
 | D-018 | P2.2 tesis kataloğu beş türün seviye 1-12 şemasını tanımlar; profil tesis satırları otomatik başlangıç hibesiyle oluşturulmaz. Satır oluşturma, seviye değişimi ve maliyet uygulaması P2.5'in sunucu-otoriteli inşa akışına aittir. | Kabul | Başlangıç tesisleri ancak denge modeli, onboarding akışı ve plan kanıtıyla birlikte açıkça tasarlanırsa eklenir. |
+| D-019 | P2.4 depolaması, kaynak bakiyesi için fiziksel bir global tavan değil her tesisin son talep edilmiş üretimine uygulanan 24-36 saatlik üretim-penceresi tavanıdır. Uzun çevrimdışı talep, bu penceredeki üretimi alır ve cursor `now`a ilerler. Bölünmüş-uzlaşma eşitliği, tek server settlement'ının 6 saat/konfigürasyon/queue sınırlarında geçerlidir; ayrı oyuncu talepleri yeni üretim penceresi başlatmaz. Talep sıklığı adaleti P2.7 gerçek-ledger karşılaştırmasında 24/48/72 saat ritimleriyle ölçülür. | Kabul | P2.7 gerçek ledger simülasyonu, hedeflenmeyen claim-sıklığı avantajını gösterirse depolama eğrisi/denge kararı birlikte revize edilir. |
+| D-020 | P2.4'ten itibaren API, server-otoriteli settlement'ta sürümlü tesis katalogunu ve saf simülasyon paketini okuyabilir; `@nexus/api -> @nexus/content,@nexus/simulation,@nexus/contracts` yönü izinlidir. Bu izin, istemciye simülasyon/bakiye otoritesi aktarmaz ve uygulama-uygulama bağımlılığına izin vermez. | Kabul | Ayrı servis/dağıtım sınırı veya istemci otoritesi riski ölçülürse bağımlılık yönü yeniden tasarlanır. |
+| D-021 | P2.4 lazy-accrual taşıması, oran/depolama sınırları arasında kesir kaybetmemek için normalize edilmiş keyfi hassasiyetli pozitif rasyonel (`numeric`/`BigInt`) olarak tutulur. Bu taşıma oyuncu bakiyesi veya ledger girdisi değildir; her yazılan bakiye ve ledger deltası D-017'nin imzalı 64-bit mikro-birim sınırında kalır. | Kabul | Depolama alanı veya performans ölçümü taşımanın sınırlandırılmasını gerektirirse, eşdeğer deterministik materializasyon/yuvarlama kuralı ve çapraz-çalışma zamanı kanıtı birlikte eklenir. |
 
 ## 25. Risk kaydı
 
@@ -626,6 +629,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.2 plan netleştirmesi | Mimari ve ekonomi incelemeleri tesis başlangıç satırlarının/giriş hibelerinin plan dışı olduğunu belirledi; D-018 katalog ile gelecekteki inşa durumu sahipliğini ayırdı. | Geçti |
 | 2026-08-14 | P2.2 | `packages/content` 5×12 tesis kataloğu, D-017 mikro-birim/tenths encoding'i ve `006_profile_facilities` migration; 60 satır formül/monotonluk, DB kısıtları/rollback, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.2-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.3 | `packages/content` exact enerji-talep kataloğu, `packages/simulation` saf sıra-kararlı enerji çözümleyicisi ve TypeScript/Python ortak golden fixture; mikro şebeke, öncelik/kalıcı kimlik, korunum, kısmi verim oranı ve geçersiz girdi kontrolleri; `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.3-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | P2.4 | `007_lazy_accrual` migration, atomik server settlement, final-window 24-36 saatlik depolama, depolanmış enerjiyle öncelikli kısmi verim ve D-021 canonical kesirli taşıma; TypeScript/Python ortak accrual fixture, `tools/balance_model.py` çapraz-oran korunum denetimi, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.4-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 

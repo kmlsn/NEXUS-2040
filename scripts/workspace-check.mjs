@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const packages = {
   "apps/web": { name: "@nexus/web", dependencies: ["@nexus/contracts", "@nexus/ui", "react", "react-dom"] },
-  "apps/api": { name: "@nexus/api", dependencies: ["@nestjs/common", "@nestjs/core", "@nexus/contracts", "reflect-metadata", "rxjs"] },
+  "apps/api": { name: "@nexus/api", dependencies: ["@nestjs/common", "@nestjs/core", "@nexus/content", "@nexus/contracts", "@nexus/simulation", "reflect-metadata", "rxjs"] },
   "apps/worker": { name: "@nexus/worker", dependencies: ["@nexus/contracts"] },
   "packages/contracts": { name: "@nexus/contracts", dependencies: [] },
   "packages/simulation": { name: "@nexus/simulation", dependencies: ["@nexus/contracts"] },

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Client, Pool } from "pg";
 import { IdempotencyKeyReusedError, InsufficientResourcesError, PostgresLedgerService } from "../src/ledger/ledger-service";
+import { LazyAccrualService } from "../src/economy/accrual-service";
 import { applyMigrations } from "../src/migrations/runner";
 
 const adminUrl = process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/postgres";
@@ -58,6 +59,34 @@ try {
   let insufficientRejected = false;
   try { await ledger.apply({ profileId, scope: "facility", idempotencyKey: "facility-cost-overdraw", reason: "facility_cost", deltas: { capital: "-1000000" } }); } catch (error) { insufficientRejected = error instanceof InsufficientResourcesError; }
   if (!insufficientRejected) throw new Error("Negative resource balance was accepted.");
+
+  const accrualProfile = await createProfile(pool);
+  const gridId = randomUUID();
+  const dataId = randomUUID();
+  const asOf = 1_800_000_000_000n;
+  const start = asOf - 3_600_000n;
+  await pool.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level, energy_priority) VALUES($1,$2,'microgrid',1,1),($3,$2,'data_center',1,1)", [gridId, accrualProfile, dataId]);
+  await pool.query("INSERT INTO profile_facility_accrual_state(facility_id,last_accrued_at) VALUES($1,to_timestamp($3::double precision/1000)),($2,to_timestamp($3::double precision/1000))", [gridId, dataId, start.toString()]);
+  const accrual = new LazyAccrualService(pool);
+  const settled = await accrual.settle(accrualProfile, asOf);
+  if (!settled.settled || settled.deltas.energy !== "20000000" || settled.deltas.compute !== "150000000") throw new Error("Atomic lazy accrual output was incorrect.");
+  const replaySettlement = await accrual.settle(accrualProfile, asOf);
+  if (replaySettlement.settled) throw new Error("Repeated lazy settlement produced another credit.");
+  const storedEnergyProfile = await createProfile(pool);
+  const storedDataId = randomUUID();
+  await ledger.apply({ profileId: storedEnergyProfile, scope: "bootstrap", idempotencyKey: "accrual-energy", reason: "system_grant", deltas: { energy: "70000000" } });
+  await pool.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level, energy_priority) VALUES($1,$2,'data_center',1,1)", [storedDataId, storedEnergyProfile]);
+  await pool.query("INSERT INTO profile_facility_accrual_state(facility_id,last_accrued_at) VALUES($1,to_timestamp($2::double precision/1000))", [storedDataId, start.toString()]);
+  const storedEnergySettlement = await accrual.settle(storedEnergyProfile, asOf);
+  if (storedEnergySettlement.deltas.energy !== "-70000000" || storedEnergySettlement.deltas.compute !== "150000000") throw new Error("Stored energy was not available to an energy consumer.");
+  const unequalWindowProfile = await createProfile(pool);
+  const unequalGrid = randomUUID();
+  const unequalData = randomUUID();
+  const staleStart = asOf - 129_600_000n;
+  await pool.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level, energy_priority) VALUES($1,$2,'microgrid',1,1),($3,$2,'data_center',9,1)", [unequalGrid, unequalWindowProfile, unequalData]);
+  await pool.query("INSERT INTO profile_facility_accrual_state(facility_id,last_accrued_at) VALUES($1,to_timestamp($3::double precision/1000)),($2,to_timestamp($3::double precision/1000))", [unequalGrid, unequalData, staleStart.toString()]);
+  const unequalSettlement = await accrual.settle(unequalWindowProfile, asOf);
+  if (!unequalSettlement.settled || !unequalSettlement.deltas.compute || unequalSettlement.deltas.energy !== undefined) throw new Error("Unequal storage windows did not settle chronologically and conservatively.");
 
   const raceProfile = await createProfile(pool);
   const raceGrant = await ledger.apply({ profileId: raceProfile, scope: "bootstrap", idempotencyKey: "race-grant", reason: "system_grant", deltas: { energy: "100" } });
