@@ -31,12 +31,12 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 
 | Alan | Değer |
 |---|---|
-| Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
-| Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | Faz 2 çıkış kapısını doğrula ve Faz 3'ü `READY` durumuna geçir |
-| Kodlama durumu | `P2.8` tamamlandı; Faz 2 kapanış doğrulaması uygulanabilir |
-| Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
-| Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
+| Mevcut faz | Faz 3 - Yaşayan NPC dünyası (`ACTIVE`) |
+| Sonraki faz | Faz 4 - Taktik operasyon simülasyonu (`BLOCKED`) |
+| Sonraki görev | `P3.1` Sürümlü `world_state` ve altı saatlik deterministik dünya çevrimini uygula |
+| Kodlama durumu | Faz 2 kapısı tamamlandı; Faz 3'ün deterministik dünya temeli uygulanabilir |
+| Son faz kapısı | Faz 2 ekonomi, kalite ve yaşam döngüsü kanıtları |
+| Başlatma kuralı | Kullanıcının kesintisiz ve sıralı ilerleme yetkisiyle Faz 3 etkin; yalnız Faz 3 görevleri uygulanabilir. |
 
 ## 3. Ürün tanımı
 
@@ -143,8 +143,8 @@ pnpm verify
 |---:|---|---|---:|---|
 | 0 | Plan ve çalışma sistemi | `COMPLETE` | 3 hafta araştırma dahil | Plan, beceriler ve ajanlar doğrulandı |
 | 1 | Teknik temel | `COMPLETE` | 4 hafta | Uygulamalar, veri tabanı, CI ve komut sözleşmesi çalışıyor |
-| 2 | Stratejik ekonomi | `ACTIVE` | 5 hafta | Beş kaynak ve tesis döngüsü uçtan uca çalışıyor |
-| 3 | Yaşayan NPC dünyası | `BLOCKED` | 3 hafta | Dünya çevrimi, pazar ve sözleşmeler deterministik |
+| 2 | Stratejik ekonomi | `COMPLETE` | 5 hafta | Beş kaynak ve tesis döngüsü uçtan uca çalışıyor |
+| 3 | Yaşayan NPC dünyası | `ACTIVE` | 3 hafta | Dünya çevrimi, pazar ve sözleşmeler deterministik |
 | 4 | Taktik operasyon simülasyonu | `BLOCKED` | 4 hafta | Keşif-yükleme-sonuç-rapor döngüsü oynanabilir |
 | 5 | Node Routing | `BLOCKED` | 2 hafta | Mini oyun erişilebilir ve sunucu doğrulamalı |
 | 6 | Asteria birleşik dikey kesiti | `BLOCKED` | 4 hafta | Strateji ve operasyon karşılıklı sonuç üretiyor |
@@ -639,6 +639,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.6 | Sunucu-otoriteli `/v1/center` özeti, kaynak nedenleri, tam kesirli üretim tahmini ve enerji-kıtlığı açıklaması; istemciden profil kimliği kabul etmeyen D-024 bağlamı, loopback API, erişilebilir loading/error/yenile UI, `pnpm verify`, güvenlik/kalite incelemeleri ve `docs/test-reports/P2.6-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.7 | `010_balance_1_3` sürüm pin'i, sabit `seed=20260809` ve UUID'li 30 günlük izole PostgreSQL ledger karşılaştırıcısı; 24/48/72 saat ritimlerinde 2/10 operasyon farkı sırasıyla `%2.38/%6.85/%18.43` ve katı `<%20`, `pnpm verify`, Python model/fixture denetimi, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.7-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.8 | D-017/D-019/D-021 için sabit LCG `seed=541065224` ile 16 overspend, 8 tam-bakiye yarışı, idempotent replay, underflow/overflow atomikliği ve heterojen cursor saat-geri-alma özellikleri; cursor gerilemesini önleyen sunucu düzeltmesi, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.8-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | Faz 2 kapısı | `docs/phase-reports/P2-gate.md`, `docs/test-reports/P2-lifecycle.md`; beş kaynak/tesis/enerji/accrual/queue/merkez döngüsü, 7/30 günlük gerçek-ledger ekonomi, property sınırları ve tam doğrulama PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 

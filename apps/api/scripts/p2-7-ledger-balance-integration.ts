@@ -5,7 +5,6 @@ import { applyMigrations } from "../src/migrations/runner";
 
 const DAY_MS = 86_400_000n;
 const START_MS = 1_800_000_000_000n;
-const DAYS = 30;
 const FIXTURE_SEED = "20260809";
 const VALUE_NUMERATOR = 7_000n;
 /** Exact shadow price: the L1 24h grid/data/workshop fixture values to 1_000 capital units/day. */
@@ -22,10 +21,10 @@ function valueMicro(resource: ResourceKind, delta: bigint): bigint {
   return resource === "capital" ? delta : delta * VALUE_NUMERATOR / VALUE_DENOMINATOR;
 }
 
-interface Result { operations: number; cadenceHours: number; facilityValueMicro: string; operationNetMicro: string; netValueMicro: string; }
+interface Result { days: number; operations: number; cadenceHours: number; facilityValueMicro: string; operationNetMicro: string; netValueMicro: string; }
 
-async function runScenario(pool: Pool, operations: number, cadenceHours: number): Promise<Result> {
-  const sequence = operations * 100 + cadenceHours;
+async function runScenario(pool: Pool, days: number, operations: number, cadenceHours: number): Promise<Result> {
+  const sequence = days * 1_000 + operations * 100 + cadenceHours;
   const profileId = fixtureUuid(sequence * 10 + 1);
   await pool.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1,'asteria-baseline-0.2','balance-1.3')", [profileId]);
   const ledger = new PostgresLedgerService(pool);
@@ -35,8 +34,8 @@ async function runScenario(pool: Pool, operations: number, cadenceHours: number)
   await pool.query("INSERT INTO profile_facility_accrual_state(facility_id,last_accrued_at) VALUES($1,to_timestamp($4::double precision/1000)),($2,to_timestamp($4::double precision/1000)),($3,to_timestamp($4::double precision/1000))", [grid, data, workshop, START_MS.toString()]);
   const accrual = new LazyAccrualService(pool);
   const cadenceDays = cadenceHours / 24;
-  for (let day = 1; day <= DAYS; day += 1) {
-    if (day % cadenceDays === 0 || day === DAYS) await accrual.settle(profileId, START_MS + BigInt(day) * DAY_MS);
+  for (let day = 1; day <= days; day += 1) {
+    if (day % cadenceDays === 0 || day === days) await accrual.settle(profileId, START_MS + BigInt(day) * DAY_MS);
     const reward = 1_000 * activity(operations);
     const cost = reward * 0.35;
     const sink = (1_000 + reward) * 0.25;
@@ -53,7 +52,7 @@ async function runScenario(pool: Pool, operations: number, cadenceHours: number)
   }
   const balances = await pool.query<{ balance_micro: string }>("SELECT balance_micro::text FROM resource_balances WHERE profile_id=$1", [profileId]);
   if (balances.rows.some((row) => BigInt(row.balance_micro) < 0n)) throw new Error("P2.7 scenario produced a negative balance.");
-  return { operations, cadenceHours, facilityValueMicro: facilityValue.toString(), operationNetMicro: operationNet.toString(), netValueMicro: (facilityValue + operationNet).toString() };
+  return { days, operations, cadenceHours, facilityValueMicro: facilityValue.toString(), operationNetMicro: operationNet.toString(), netValueMicro: (facilityValue + operationNet).toString() };
 }
 
 async function dropTestDatabase(client: Client): Promise<void> {
@@ -74,20 +73,20 @@ const pool = new Pool({ connectionString: testUrl });
 try {
   await applyMigrations(testUrl);
   const results: Result[] = [];
-  for (const cadenceHours of [24, 48, 72]) for (const operations of [2, 10]) results.push(await runScenario(pool, operations, cadenceHours));
-  for (const cadenceHours of [24, 48, 72]) {
-    const casual = results.find((result) => result.operations === 2 && result.cadenceHours === cadenceHours);
-    const engaged = results.find((result) => result.operations === 10 && result.cadenceHours === cadenceHours);
+  for (const days of [7, 30]) for (const cadenceHours of [24, 48, 72]) for (const operations of [2, 10]) results.push(await runScenario(pool, days, operations, cadenceHours));
+  for (const days of [7, 30]) for (const cadenceHours of [24, 48, 72]) {
+    const casual = results.find((result) => result.days === days && result.operations === 2 && result.cadenceHours === cadenceHours);
+    const engaged = results.find((result) => result.days === days && result.operations === 10 && result.cadenceHours === cadenceHours);
     if (!casual || !engaged) throw new Error("P2.7 paired scenario is incomplete.");
     if (BigInt(casual.netValueMicro) <= 0n || BigInt(engaged.netValueMicro) <= 0n) throw new Error("P2.7 progression comparison requires positive normalized net values.");
     const casualNet = BigInt(casual.netValueMicro);
     const engagedNet = BigInt(engaged.netValueMicro);
     if ((engagedNet - casualNet) * 100n >= casualNet * 20n) {
-      throw new Error(`P2.7 active/casual gap exceeded the strict limit at ${cadenceHours}h.`);
+      throw new Error(`P2.7 active/casual gap exceeded the strict limit at ${days}d/${cadenceHours}h.`);
     }
   }
-  const daily = results.find((result) => result.operations === 2 && result.cadenceHours === 24);
-  const every72 = results.find((result) => result.operations === 2 && result.cadenceHours === 72);
+  const daily = results.find((result) => result.days === 30 && result.operations === 2 && result.cadenceHours === 24);
+  const every72 = results.find((result) => result.days === 30 && result.operations === 2 && result.cadenceHours === 72);
   if (!daily || !every72 || BigInt(every72.facilityValueMicro) >= BigInt(daily.facilityValueMicro)) throw new Error("P2.7 claim cadence did not expose storage-window foregone production.");
   console.log(`PASS: P2.7 deterministic full-ledger comparison seed=${FIXTURE_SEED} ${JSON.stringify(results)}`);
 } finally {
