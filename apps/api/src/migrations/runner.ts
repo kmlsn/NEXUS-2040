@@ -39,9 +39,9 @@ async function withLock<T>(databaseUrl: string, work: (client: Client) => Promis
   }
 }
 
-export async function applyMigrations(databaseUrl: string): Promise<string[]> {
+export async function applyMigrations(databaseUrl: string, throughVersion?: string): Promise<string[]> {
   return withLock(databaseUrl, async (client) => {
-    const migrations = await loadMigrations();
+    const migrations = (await loadMigrations()).filter((migration) => !throughVersion || migration.version <= throughVersion);
     const applied = new Map((await client.query<{ version: string; checksum: string }>("SELECT version, checksum FROM schema_migrations")).rows.map((row) => [row.version, row.checksum]));
     const availableVersions = new Set(migrations.map((migration) => migration.version));
     for (const appliedVersion of applied.keys()) {

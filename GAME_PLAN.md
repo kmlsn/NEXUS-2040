@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.1` beş kaynak için ledger işlemlerini uygula |
-| Kodlama durumu | Faz 1 kapısı geçti; Faz 2 etkin ve ilk ekonomik çekirdek görevi uygulanabilir |
+| Sonraki görev | `P2.2` beş tesis türü ve seviye 1-12 veri şemasını oluştur |
+| Kodlama durumu | `P2.1` tamamlandı; tesis veri şeması görevi uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -220,7 +220,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 
 ### Görevler
 
-- [ ] **P2.1** Enerji, İşlem Gücü, Bileşen, Sermaye ve Uzmanlık ledger işlemlerini uygula.
+- [x] **P2.1** Enerji, İşlem Gücü, Bileşen, Sermaye ve Uzmanlık ledger işlemlerini uygula.
 - [ ] **P2.2** Beş tesis türünü ve seviye 1-12 veri şemasını oluştur.
 - [ ] **P2.3** Enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz.
 - [ ] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
@@ -583,6 +583,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | D-014 | Faz kapanışı sonraki fazı yalnız `READY` yapar; `ACTIVE` geçişi açık kullanıcı talebi ister. | Değişmez | Kullanıcı çalışma düzenini açıkça değiştirirse. |
 | D-015 | Gerçek ad çakışması nedeniyle önceki endüstri organizasyonu adı `Nexilune Industrial` olarak değiştirildi; arşiv DOCX'teki eski ad geçersizdir. | Kabul | Yeni ad için doğrulanmış bir çakışma bulunursa aynı süreç tekrarlanır. |
 | D-016 | Bağımsız `lifecycle_game_tester` her davranış görevi, faz kapısı, final release ve yayın sonrası uyumlulukta zorunludur. | Değişmez | Kullanıcı test kapsamını açıkça değiştirirse. |
+| D-017 | Kaynak ledger serileştirmesi `1 kaynak = 1_000_000` mikro-birim ve half-away-from-zero tek-dönüşüm kuralını kullanır; bu bir encoding sözleşmesidir, ekonomi katsayılarını veya `balance-1.2` sürümünü değiştirmez. | Kabul | Birim ölçeği ya da yuvarlama ancak karar, model ve çapraz-çalışma zamanı kanıtı birlikte güncellenirse değişir. |
 
 ## 25. Risk kaydı
 
@@ -619,6 +620,8 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P1.7 | `.github/workflows/ci.yml`, platform-bağımsız PCG fixture sarmalayıcısı; GitHub Actions run `31744637453` içinde `lint/typecheck/unit/integration` PASS ve `main` için strict required checks/PR koruması; kalite/lifecycle PASS | Geçti |
 | 2026-08-14 | P1.8 | `README.md`, optional `.env` Compose/API sarmalayıcıları; varsayılan ve özel portlu yerel başlangıç/migration/entegrasyon akışı, `pnpm verify`, kalite ve `docs/test-reports/P1.8-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | Faz 1 kapısı | `docs/phase-reports/P1-gate.md`, `docs/test-reports/P1-lifecycle.md`; web/API/worker liveness, PostgreSQL/Redis sınırı, eşzamanlı idempotency, CI koruması ve tam doğrulama PASS | Geçti |
+| 2026-08-14 | P2.1 plan netleştirmesi | Ekonomi, mimari ve güvenlik incelemeleri signed-64/scale ve eşzamanlı negatif-bakiye açığını saptadı; Bölüm 28 ve D-017 `1_000_000` mikro-birim encoding'ini sabitledi. Başlangıç hibesi, tesis oranı ve shadow-price bu görev kapsamına alınmadı. | Geçti |
+| 2026-08-14 | P2.1 | `003-005` ledger migrations, `PostgresLedgerService`, D-017 Python/TypeScript fixture, legacy-backfill, idempotency/replay/conflict, profile-FK, reason allowlist ve concurrent-spend testleri; `pnpm verify`, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.1-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
@@ -636,7 +639,7 @@ Plan değişikliği gerektiğinde:
 
 Bu bölüm Faz 2-6 sistemlerinin başlangıç matematik sözleşmesidir. `tools/balance_model.py` bunun yürütülebilir referansıdır; farklı sonuç üretirse görev kapatılamaz. `clamp(a,b,x)=max(a,min(b,x))`, `sigmoid(x)=1/(1+e^-x)`.
 
-Yuvarlama `half-away-from-zero` kullanır: mutlak değer `10^d` ile ölçeklenir, `floor(x+0.5)` uygulanır, işaret geri konur. `round`, `round1`, `round4` sırasıyla `d=0,1,4` demektir. Olasılıklar çekilişten önce aynı kuralla 9 ondalığa quantize edilir ve `T=floor(P*2^32)` eşiğine çevrilir. Rastgele `uint32<T` ise olay olur. Ledger değerleri veritabanında tam sayı mikro-birim olarak tutulur; kayan nokta değer doğrudan bakiyeye yazılmaz.
+Yuvarlama `half-away-from-zero` kullanır: mutlak değer `10^d` ile ölçeklenir, `floor(x+0.5)` uygulanır, işaret geri konur. `round`, `round1`, `round4` sırasıyla `d=0,1,4` demektir. Olasılıklar çekilişten önce aynı kuralla 9 ondalığa quantize edilir ve `T=floor(P*2^32)` eşiğine çevrilir. Rastgele `uint32<T` ise olay olur. Ledger değerleri veritabanında tam sayı mikro-birim olarak tutulur; kayan nokta değer doğrudan bakiyeye yazılmaz. Bir mikro-birim `10^-6` kaynak birimidir; birimden mikro-birime dönüşüm `roundHalfAway(units*1_000_000)` ile bir kez, kaynakta yapılır. Saklanan ve işlem sonrası hesaplanan her değer PostgreSQL signed-64 `bigint` aralığında kalmalı; aralık dışı niyet reddedilir.
 
 Tekrar üretilebilir rastgelelik sözleşmesi:
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import hashlib
 import math
+import re
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -24,6 +26,27 @@ NODE_NEUTRAL_SCORE = 50.0
 NODE_MAX_BONUS_PP = 0.10
 UINT32_RANGE = 1 << 32
 UINT64_MASK = (1 << 64) - 1
+MICRO_UNITS_PER_RESOURCE = 1_000_000
+POSTGRES_BIGINT_MIN = -(1 << 63)
+POSTGRES_BIGINT_MAX = (1 << 63) - 1
+RESOURCE_UNITS_PATTERN = re.compile(r"^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
+
+
+def resource_units_to_micro(value: str) -> int:
+    """D-017 exact decimal conversion; never route ledger values through float."""
+    if not RESOURCE_UNITS_PATTERN.fullmatch(value):
+        raise ValueError("invalid resource decimal")
+    try:
+        units = Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError("invalid resource decimal") from exc
+    if not units.is_finite():
+        raise ValueError("invalid resource decimal")
+    magnitude = int((abs(units) * Decimal(MICRO_UNITS_PER_RESOURCE)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    amount = -magnitude if units.is_signed() else magnitude
+    if amount == 0 or amount < POSTGRES_BIGINT_MIN or amount > POSTGRES_BIGINT_MAX:
+        raise ValueError("resource micro-unit out of PostgreSQL bigint range")
+    return amount
 
 
 def round_half_away(value: float, digits: int = 0) -> float:
@@ -569,6 +592,8 @@ def tier_rows() -> list[dict]:
 
 
 def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
+    assert resource_units_to_micro("9223372036854.775807") == POSTGRES_BIGINT_MAX
+    assert resource_units_to_micro("-9223372036854.775808") == POSTGRES_BIGINT_MIN
     checks: list[str] = []
     assert FORMULA_VERSION == "balance-1.2"
     assert CONTENT_VERSION == "asteria-baseline-0.2"
