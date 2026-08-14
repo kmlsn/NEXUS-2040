@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint apps packages scripts --max-warnings=0",
     "typecheck": "pnpm --filter @nexus/web --filter @nexus/api --filter @nexus/worker --filter @nexus/contracts --filter @nexus/simulation --filter @nexus/content --filter @nexus/ui -r run typecheck",
-    "test": "node scripts/workspace-check.mjs && node scripts/ci-contract-check.mjs && node scripts/local-services-check.mjs --config-only && pnpm --filter @nexus/contracts run test && pnpm --filter @nexus/simulation run test && node scripts/pcg-fixture-check.mjs && node scripts/http-smoke.mjs",
+    "test": "node scripts/workspace-check.mjs && node scripts/ci-contract-check.mjs && node scripts/local-services-check.mjs --config-only && pnpm --filter @nexus/contracts run test && pnpm --filter @nexus/simulation run test && node scripts/pcg-fixture-check.mjs && pnpm --filter @nexus/web run build && node scripts/web-smoke.mjs && node scripts/http-smoke.mjs",
     "test:integration": "pnpm run services:check && pnpm --filter @nexus/api run test:integration",
     "test:e2e": "node scripts/deferred-suite.mjs test:e2e",
     "balance:check": "node scripts/deferred-suite.mjs balance:check",
