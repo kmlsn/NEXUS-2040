@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.3` enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz |
-| Kodlama durumu | `P2.2` tamamlandı; enerji çözümleyicisi görevi uygulanabilir |
+| Sonraki görev | `P2.4` 24-36 saatlik lazy accrual ve depolama kapasitesini uygula |
+| Kodlama durumu | `P2.3` tamamlandı; lazy accrual görevi uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -222,7 +222,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 
 - [x] **P2.1** Enerji, İşlem Gücü, Bileşen, Sermaye ve Uzmanlık ledger işlemlerini uygula.
 - [x] **P2.2** Beş tesis türünü ve seviye 1-12 veri şemasını oluştur.
-- [ ] **P2.3** Enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz.
+- [x] **P2.3** Enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz.
 - [ ] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
 - [ ] **P2.5** Ücretsiz inşa/araştırma kuyruğu, bitiş uzlaşması ve iptal iadesini uygula.
 - [ ] **P2.6** Merkez ekranında kaynak nedeni, üretim tahmini ve enerji yetersizliği açıklamasını göster.
@@ -625,6 +625,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.1 | `003-005` ledger migrations, `PostgresLedgerService`, D-017 Python/TypeScript fixture, legacy-backfill, idempotency/replay/conflict, profile-FK, reason allowlist ve concurrent-spend testleri; `pnpm verify`, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.1-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.2 plan netleştirmesi | Mimari ve ekonomi incelemeleri tesis başlangıç satırlarının/giriş hibelerinin plan dışı olduğunu belirledi; D-018 katalog ile gelecekteki inşa durumu sahipliğini ayırdı. | Geçti |
 | 2026-08-14 | P2.2 | `packages/content` 5×12 tesis kataloğu, D-017 mikro-birim/tenths encoding'i ve `006_profile_facilities` migration; 60 satır formül/monotonluk, DB kısıtları/rollback, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.2-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | P2.3 | `packages/content` exact enerji-talep kataloğu, `packages/simulation` saf sıra-kararlı enerji çözümleyicisi ve TypeScript/Python ortak golden fixture; mikro şebeke, öncelik/kalıcı kimlik, korunum, kısmi verim oranı ve geçersiz girdi kontrolleri; `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.3-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 

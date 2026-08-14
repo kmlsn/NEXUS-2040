@@ -349,6 +349,76 @@ def allocate_energy(available: float, facilities: list[dict]) -> list[dict]:
     return result
 
 
+def allocate_energy_micro(available_micro: int, facilities: list[dict]) -> list[dict]:
+    """P2.3 reference resolver with exact allocation and unrounded rational output rates.
+
+    P2.4 carries these fractions across elapsed-time boundaries before creating
+    an integer ledger delta, preventing split-interval rounding drift.
+    """
+    if not isinstance(available_micro, int) or not 0 <= available_micro <= POSTGRES_BIGINT_MAX:
+        raise ValueError("available energy must be non-negative")
+    remaining = available_micro
+    result: list[dict] = []
+    seen_ids: set[str] = set()
+    valid_kinds = {"microgrid", "data_center", "robotics_workshop", "research_lab", "security_operations_center"}
+    microgrids = sorted((item for item in facilities if item.get("facility_kind") == "microgrid"), key=lambda row: row["facility_id"])
+    consumers = sorted((item for item in facilities if item.get("facility_kind") != "microgrid"), key=lambda row: (row["priority"], row["facility_id"]))
+    for item in microgrids + consumers:
+        facility_id = item["facility_id"]
+        facility_kind = item["facility_kind"]
+        demand = item["demand_micro"]
+        nominal_output = item["nominal_output_micro"]
+        if not facility_id or facility_id in seen_ids or facility_kind not in valid_kinds or not isinstance(demand, int) or not isinstance(nominal_output, int):
+            raise ValueError("invalid energy facility")
+        seen_ids.add(facility_id)
+        if not isinstance(item["priority"], int) or not 1 <= item["priority"] <= 5 or not 0 <= demand <= POSTGRES_BIGINT_MAX or not 0 <= nominal_output <= POSTGRES_BIGINT_MAX:
+            raise ValueError("invalid energy facility")
+        if facility_kind == "microgrid":
+            if demand != 0:
+                raise ValueError("microgrid demand must be zero")
+            result.append(
+                {
+                    "facility_id": facility_id,
+                    "allocation_micro": 0,
+                    "efficiency_numerator": 1,
+                    "efficiency_denominator": 1,
+                    "actual_output_micro_per_hour_numerator": nominal_output,
+                    "actual_output_micro_per_hour_denominator": 1,
+                }
+            )
+            continue
+        if demand == 0:
+            raise ValueError("consumer demand must be positive")
+        allocation = min(demand, remaining)
+        remaining -= allocation
+        numerator = nominal_output * allocation
+        if numerator == 0:
+            result.append(
+                {
+                    "facility_id": facility_id,
+                    "allocation_micro": allocation,
+                    "efficiency_numerator": allocation,
+                    "efficiency_denominator": demand,
+                    "actual_output_micro_per_hour_numerator": 0,
+                    "actual_output_micro_per_hour_denominator": 1,
+                }
+            )
+            continue
+        denominator = demand
+        divisor = math.gcd(numerator, denominator) if numerator else 1
+        result.append(
+            {
+                "facility_id": facility_id,
+                "allocation_micro": allocation,
+                "efficiency_numerator": allocation,
+                "efficiency_denominator": demand,
+                "actual_output_micro_per_hour_numerator": numerator // divisor,
+                "actual_output_micro_per_hour_denominator": denominator // divisor,
+            }
+        )
+    return result
+
+
 def facility_capital_cost(base_cost: int, level: int) -> int:
     return int(round_half_away(base_cost * 1.55 ** (level - 1)))
 
@@ -664,6 +734,17 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     assert sum(row["allocation"] for row in allocation) == 90.0
     assert allocation[0]["facility_id"] == "data" and allocation[0]["efficiency"] == 1.0
     assert allocation[1]["facility_id"] == "lab" and allocation[1]["allocation"] == 20.0
+    exact_energy_fixture = [
+        {"facility_id": "grid", "facility_kind": "microgrid", "priority": 5, "demand_micro": 0, "nominal_output_micro": 90_000_000},
+        {"facility_id": "data", "facility_kind": "data_center", "priority": 1, "demand_micro": 70_000_000, "nominal_output_micro": 150_000_000},
+        {"facility_id": "lab", "facility_kind": "research_lab", "priority": 2, "demand_micro": 45_000_000, "nominal_output_micro": 8_000_000},
+        {"facility_id": "workshop", "facility_kind": "robotics_workshop", "priority": 3, "demand_micro": 35_000_000, "nominal_output_micro": 18_000_000},
+    ]
+    exact_allocation = allocate_energy_micro(90_000_000, exact_energy_fixture)
+    assert [row["facility_id"] for row in exact_allocation] == ["grid", "data", "lab", "workshop"]
+    assert [row["allocation_micro"] for row in exact_allocation] == [0, 70_000_000, 20_000_000, 0]
+    assert exact_allocation[2]["actual_output_micro_per_hour_numerator"] == 32_000_000
+    assert exact_allocation[2]["actual_output_micro_per_hour_denominator"] == 9
     checks.append("Enerji çözümleyicisi öncelik/id sırasını, korunumu ve doğrusal kısmi verimi sağlıyor.")
     assert all(0.60 <= row["success_rate"] <= 0.85 for row in matched)
     checks.append("Eş-kademe başarı oranları %60-%85 tasarım bandında.")

@@ -1,0 +1,30 @@
+{
+  "formula_version": "balance-1.2",
+  "content_version": "asteria-baseline-0.2",
+  "cases": [
+    {
+      "name": "priority_partial",
+      "available_energy_micro": "90000000",
+      "facilities": [
+        { "facility_id": "data", "facility_kind": "data_center", "priority": 1, "demand_micro": "70000000", "nominal_output_micro": "150000000" },
+        { "facility_id": "lab", "facility_kind": "research_lab", "priority": 2, "demand_micro": "45000000", "nominal_output_micro": "8000000" },
+        { "facility_id": "workshop", "facility_kind": "robotics_workshop", "priority": 3, "demand_micro": "35000000", "nominal_output_micro": "18000000" }
+      ],
+      "expected": [
+        { "facility_id": "data", "allocated_micro": "70000000", "output_numerator": "150000000", "output_denominator": "1" },
+        { "facility_id": "lab", "allocated_micro": "20000000", "output_numerator": "32000000", "output_denominator": "9" },
+        { "facility_id": "workshop", "allocated_micro": "0", "output_numerator": "0", "output_denominator": "1" }
+      ]
+    },
+    {
+      "name": "microgrid_nonconsumer",
+      "available_energy_micro": "0",
+      "facilities": [
+        { "facility_id": "grid", "facility_kind": "microgrid", "priority": 5, "demand_micro": "0", "nominal_output_micro": "90000000" }
+      ],
+      "expected": [
+        { "facility_id": "grid", "allocated_micro": "0", "output_numerator": "90000000", "output_denominator": "1" }
+      ]
+    }
+  ]
+}
