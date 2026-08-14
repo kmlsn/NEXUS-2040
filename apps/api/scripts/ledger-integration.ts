@@ -3,6 +3,7 @@ import { Client, Pool } from "pg";
 import { IdempotencyKeyReusedError, InsufficientResourcesError, PostgresLedgerService } from "../src/ledger/ledger-service";
 import { LazyAccrualService } from "../src/economy/accrual-service";
 import { FacilityQueueService } from "../src/economy/facility-queue-service";
+import { CenterService } from "../src/economy/center-service";
 import { applyMigrations } from "../src/migrations/runner";
 
 const adminUrl = process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/postgres";
@@ -132,6 +133,14 @@ try {
   if (upgradedFacility.rows[0]?.level !== 2) throw new Error("Completed upgrade did not apply its target level.");
   const queuedEnergy = await pool.query<{ balance_micro: string }>("SELECT balance_micro FROM resource_balances WHERE profile_id = $1 AND resource = 'energy'", [queueProfile]);
   if (queuedEnergy.rows[0]?.balance_micro !== "115050025") throw new Error("Queue boundary did not preserve old then new facility output.");
+  const center = new CenterService(pool);
+  const centerSnapshot = await center.snapshot(queueProfile, BigInt(queueNow));
+  if (!centerSnapshot || centerSnapshot.energy.status !== "sufficient" || centerSnapshot.facilities[0]?.estimateMicroPerHour.numerator !== "111600000" || centerSnapshot.facilities[0]?.estimateMicroPerHour.denominator !== "1" || centerSnapshot.resources.find((resource) => resource.kind === "energy")?.lastReason !== "accrual_settlement") throw new Error("Center snapshot did not expose authoritative resource reason and production estimate.");
+  const constrainedProfile = await createProfile(pool);
+  await ledger.apply({ profileId: constrainedProfile, scope: "bootstrap", idempotencyKey: "center-low-energy", reason: "system_grant", deltas: { energy: "1" } });
+  await pool.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level, energy_priority) VALUES($1,$2,'data_center',1,1)", [randomUUID(), constrainedProfile]);
+  const constrainedCenter = await center.snapshot(constrainedProfile, BigInt(queueNow));
+  if (!constrainedCenter || constrainedCenter.energy.status !== "constrained" || constrainedCenter.facilities[0]?.estimateMicroPerHour.numerator !== "15" || constrainedCenter.facilities[0]?.estimateMicroPerHour.denominator !== "7" || !constrainedCenter.energy.explanation.includes("kısıtlı")) throw new Error("Center snapshot did not preserve the exact insufficient-energy estimate.");
 
   const queueRaceProfile = await createProfile(pool);
   await ledger.apply({ profileId: queueRaceProfile, scope: "bootstrap", idempotencyKey: "queue-race-grant", reason: "system_grant", deltas: { capital: "10000000000", components: "1000000000" } });

@@ -31,6 +31,8 @@ Invoke-RestMethod http://127.0.0.1:3000/health
 Invoke-RestMethod http://127.0.0.1:3001/health
 ```
 
+Merkez ekranı yerel tek oyuncu profili için sunucudaki `CENTER_PROFILE_ID` değerini kullanır; tarayıcıdan profil kimliği kabul edilmez. Yerel profili oluşturduktan sonra bu UUID'yi yalnız `.env` dosyasına yazın ve API'yi yeniden başlatın. Vite geliştirme sunucusu `/v1` isteklerini varsayılan olarak `http://127.0.0.1:3000` API'sine iletir; gerekirse `VITE_API_ORIGIN` ile yalnız yerel API kökenini değiştirin.
+
 Tanılama ve kapanış:
 
 ```powershell
