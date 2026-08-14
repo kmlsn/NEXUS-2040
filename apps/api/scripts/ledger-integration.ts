@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Client, Pool } from "pg";
 import { IdempotencyKeyReusedError, InsufficientResourcesError, PostgresLedgerService } from "../src/ledger/ledger-service";
 import { LazyAccrualService } from "../src/economy/accrual-service";
+import { FacilityQueueService } from "../src/economy/facility-queue-service";
 import { applyMigrations } from "../src/migrations/runner";
 
 const adminUrl = process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/postgres";
@@ -87,6 +88,64 @@ try {
   await pool.query("INSERT INTO profile_facility_accrual_state(facility_id,last_accrued_at) VALUES($1,to_timestamp($3::double precision/1000)),($2,to_timestamp($3::double precision/1000))", [unequalGrid, unequalData, staleStart.toString()]);
   const unequalSettlement = await accrual.settle(unequalWindowProfile, asOf);
   if (!unequalSettlement.settled || !unequalSettlement.deltas.compute || unequalSettlement.deltas.energy !== undefined) throw new Error("Unequal storage windows did not settle chronologically and conservatively.");
+
+  const queueProfile = await createProfile(pool);
+  await ledger.apply({ profileId: queueProfile, scope: "bootstrap", idempotencyKey: "queue-grant", reason: "system_grant", deltas: { capital: "10000000000", components: "1000000000" } });
+  let queueNow = Number(asOf);
+  const queueService = new FacilityQueueService(pool, { nowMs: () => queueNow });
+  const cancelledBuild = await queueService.enqueue(queueProfile, "microgrid", "queue-cancel-build");
+  const enqueueReplay = await queueService.enqueue(queueProfile, "microgrid", "queue-cancel-build");
+  if (enqueueReplay.id !== cancelledBuild.id || cancelledBuild.targetLevel !== 1) throw new Error("Facility queue enqueue replay was not idempotent.");
+  const initialSnapshot = await pool.query<{ capital_cost_micro: string; components_cost_micro: string; duration_ms: string; content_version: string; formula_version: string }>("SELECT capital_cost_micro::text, components_cost_micro::text, duration_ms::text, content_version, formula_version FROM facility_queue_items WHERE id = $1", [cancelledBuild.id]);
+  const initial = initialSnapshot.rows[0];
+  if (!initial || initial.capital_cost_micro !== "220000000" || initial.components_cost_micro !== "12000000" || initial.duration_ms !== "90000" || initial.content_version !== "asteria-baseline-0.2" || initial.formula_version !== "balance-1.2") throw new Error("Level one queue did not snapshot canonical cost, duration, and versions.");
+  queueNow = Number(cancelledBuild.finishAtMs - 1n);
+  const cancelled = await queueService.cancel(queueProfile, cancelledBuild.id, "queue-cancel");
+  if (cancelled.status !== "cancelled" || !cancelled.refundTransactionId) throw new Error("Pre-finish construction cancellation did not refund.");
+  const cancelReplay = await queueService.cancel(queueProfile, cancelledBuild.id, "queue-cancel-another-key");
+  if (cancelReplay.refundTransactionId !== cancelled.refundTransactionId) throw new Error("Cancelled construction created a second refund.");
+  const refundConservation = await pool.query<{ resource: string; total: string; count: string }>("SELECT resource, SUM(amount_micro)::text AS total, count(*)::text AS count FROM resource_ledger_entries WHERE transaction_id = ANY($1::uuid[]) GROUP BY resource ORDER BY resource", [[cancelledBuild.costTransactionId, cancelled.refundTransactionId]]);
+  if (refundConservation.rows.length !== 2 || refundConservation.rows.some((row) => row.total !== "0" || row.count !== "2")) throw new Error("Queue debit and refund did not conserve each resource exactly once.");
+  const refunded = await pool.query<{ resource: string; balance_micro: string }>("SELECT resource, balance_micro FROM resource_balances WHERE profile_id = $1 AND resource IN ('capital','components') ORDER BY resource", [queueProfile]);
+  if (refunded.rows.find((row) => row.resource === "capital")?.balance_micro !== "10000000000" || refunded.rows.find((row) => row.resource === "components")?.balance_micro !== "1000000000") throw new Error("Facility cancellation was not a full one-time refund.");
+  queueNow += 1;
+  const firstBuild = await queueService.enqueue(queueProfile, "microgrid", "queue-complete-build");
+  queueNow = Number(firstBuild.finishAtMs);
+  const historicalCancel = await queueService.cancel(queueProfile, cancelledBuild.id, "queue-historical-id");
+  if (historicalCancel.status !== "cancelled") throw new Error("Historical cancellation did not return its own terminal item.");
+  const stillActiveAtBoundary = await pool.query<{ status: string }>("SELECT status FROM facility_queue_items WHERE id = $1", [firstBuild.id]);
+  if (stillActiveAtBoundary.rows[0]?.status !== "active") throw new Error("Historical cancellation completed a different due queue item.");
+  const completedAtBoundary = await queueService.cancel(queueProfile, firstBuild.id, "queue-too-late");
+  if (completedAtBoundary.status !== "completed") throw new Error("Completion did not win at the finish boundary.");
+  const firstFacility = await pool.query<{ level: number }>("SELECT level FROM profile_facilities WHERE profile_id = $1 AND facility_kind = 'microgrid'", [queueProfile]);
+  if (firstFacility.rows[0]?.level !== 1) throw new Error("Finished construction did not create level one facility.");
+  queueNow += 1;
+  const upgrade = await queueService.enqueue(queueProfile, "microgrid", "queue-upgrade-build");
+  if (upgrade.targetLevel !== 2) throw new Error("Existing facility queue did not target the next level.");
+  const upgradeSnapshot = await pool.query<{ capital_cost_micro: string; components_cost_micro: string; duration_ms: string }>("SELECT capital_cost_micro::text, components_cost_micro::text, duration_ms::text FROM facility_queue_items WHERE id = $1", [upgrade.id]);
+  const upgraded = upgradeSnapshot.rows[0];
+  if (!upgraded || upgraded.capital_cost_micro !== "341000000" || upgraded.components_cost_micro !== "18000000" || upgraded.duration_ms !== "138000") throw new Error("Upgrade queue did not snapshot target-level cost and duration.");
+  queueNow = Number(upgrade.finishAtMs + 3_600_000n);
+  const completedUpgrade = await queueService.reconcile(queueProfile);
+  if (completedUpgrade?.status !== "completed") throw new Error("Late construction reconciliation did not complete.");
+  const upgradedFacility = await pool.query<{ level: number }>("SELECT level FROM profile_facilities WHERE profile_id = $1 AND facility_kind = 'microgrid'", [queueProfile]);
+  if (upgradedFacility.rows[0]?.level !== 2) throw new Error("Completed upgrade did not apply its target level.");
+  const queuedEnergy = await pool.query<{ balance_micro: string }>("SELECT balance_micro FROM resource_balances WHERE profile_id = $1 AND resource = 'energy'", [queueProfile]);
+  if (queuedEnergy.rows[0]?.balance_micro !== "115050025") throw new Error("Queue boundary did not preserve old then new facility output.");
+
+  const queueRaceProfile = await createProfile(pool);
+  await ledger.apply({ profileId: queueRaceProfile, scope: "bootstrap", idempotencyKey: "queue-race-grant", reason: "system_grant", deltas: { capital: "10000000000", components: "1000000000" } });
+  const queueFirstPool = new Pool({ connectionString: testUrl });
+  const queueSecondPool = new Pool({ connectionString: testUrl });
+  try {
+    const queueResults = await Promise.allSettled([
+      new FacilityQueueService(queueFirstPool, { nowMs: () => Number(asOf) }).enqueue(queueRaceProfile, "microgrid", "queue-race-a"),
+      new FacilityQueueService(queueSecondPool, { nowMs: () => Number(asOf) }).enqueue(queueRaceProfile, "data_center", "queue-race-b"),
+    ]);
+    if (queueResults.filter((result) => result.status === "fulfilled").length !== 1 || queueResults.filter((result) => result.status === "rejected").length !== 1) throw new Error("Concurrent queue starts did not resolve to exactly one active item.");
+  } finally { await Promise.all([queueFirstPool.end(), queueSecondPool.end()]); }
+  const activeQueues = await pool.query<{ count: string }>("SELECT count(*) FROM facility_queue_items WHERE profile_id = $1 AND status = 'active'", [queueRaceProfile]);
+  if (activeQueues.rows[0]?.count !== "1") throw new Error("Concurrent queue starts created multiple active items.");
 
   const raceProfile = await createProfile(pool);
   const raceGrant = await ledger.apply({ profileId: raceProfile, scope: "bootstrap", idempotencyKey: "race-grant", reason: "system_grant", deltas: { energy: "100" } });

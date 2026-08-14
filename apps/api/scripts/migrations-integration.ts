@@ -17,6 +17,7 @@ try {
   await applyMigrations(testUrl);
   await rollbackLatestMigration(testUrl);
   await rollbackLatestMigration(testUrl);
+  await rollbackLatestMigration(testUrl);
   await applyMigrations(testUrl);
   await applyMigrations(testUrl);
 
@@ -25,7 +26,8 @@ try {
   await client.connect();
   const profileId = randomUUID();
   await client.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [profileId]);
-  await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'microgrid',1)", [randomUUID(), profileId]);
+  const facilityId = randomUUID();
+  await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'microgrid',1)", [facilityId, profileId]);
   let duplicateFacilityRejected = false;
   try { await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'microgrid',1)", [randomUUID(), profileId]); } catch { duplicateFacilityRejected = true; }
   if (!duplicateFacilityRejected) throw new Error("Duplicate profile facility was accepted.");
@@ -62,6 +64,32 @@ try {
   let truncateRejected = false;
   try { await client.query("TRUNCATE resource_ledger_entries"); } catch { truncateRejected = true; }
   if (!truncateRejected) throw new Error("Ledger truncation was accepted.");
+  const costRequest = randomUUID();
+  const costTransaction = randomUUID();
+  await client.query("INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'facility:queue-test','cost',$3,'pending')", [costRequest, profileId, "e".repeat(64)]);
+  await client.query("INSERT INTO ledger_transactions(id, profile_id, idempotency_request_id, reason_code) VALUES($1,$2,$3,'facility_cost')", [costTransaction, profileId, costRequest]);
+  let reasonRejected = false;
+  try { await client.query("INSERT INTO facility_queue_items(id, profile_id, facility_kind, target_level, status, enqueued_at, finish_at, capital_cost_micro, components_cost_micro, duration_ms, content_version, formula_version, cost_transaction_id) VALUES($1,$2,'microgrid',1,'active',now(),now() + interval '1 minute',1,1,60000,'asteria-baseline-0.2','balance-1.2',$3)", [randomUUID(), profileId, transactionId]); } catch { reasonRejected = true; }
+  if (!reasonRejected) throw new Error("Facility queue accepted non-cost ledger transaction.");
+  let facilityBindingRejected = false;
+  try { await client.query("INSERT INTO facility_queue_items(id, profile_id, facility_id, facility_kind, target_level, status, enqueued_at, finish_at, capital_cost_micro, components_cost_micro, duration_ms, content_version, formula_version, cost_transaction_id) VALUES($1,$2,$3,'data_center',2,'active',now(),now() + interval '1 minute',1,1,60000,'asteria-baseline-0.2','balance-1.2',$4)", [randomUUID(), profileId, facilityId, costTransaction]); } catch { facilityBindingRejected = true; }
+  if (!facilityBindingRejected) throw new Error("Facility queue accepted a mismatched facility kind.");
+  const otherProfile = randomUUID();
+  const otherRequest = randomUUID();
+  const otherTransaction = randomUUID();
+  await client.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [otherProfile]);
+  await client.query("INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'facility:queue-test','other-cost',$3,'pending')", [otherRequest, otherProfile, "f".repeat(64)]);
+  await client.query("INSERT INTO ledger_transactions(id, profile_id, idempotency_request_id, reason_code) VALUES($1,$2,$3,'facility_cost')", [otherTransaction, otherProfile, otherRequest]);
+  let transactionProfileRejected = false;
+  try { await client.query("INSERT INTO facility_queue_items(id, profile_id, facility_kind, target_level, status, enqueued_at, finish_at, capital_cost_micro, components_cost_micro, duration_ms, content_version, formula_version, cost_transaction_id) VALUES($1,$2,'microgrid',1,'active',now(),now() + interval '1 minute',1,1,60000,'asteria-baseline-0.2','balance-1.2',$3)", [randomUUID(), profileId, otherTransaction]); } catch { transactionProfileRejected = true; }
+  if (!transactionProfileRejected) throw new Error("Facility queue accepted a cross-profile cost transaction.");
+  await client.query("INSERT INTO facility_queue_items(id, profile_id, facility_id, facility_kind, target_level, status, enqueued_at, finish_at, capital_cost_micro, components_cost_micro, duration_ms, content_version, formula_version, cost_transaction_id) VALUES($1,$2,$3,'microgrid',2,'active',now(),now() + interval '1 minute',1,1,60000,'asteria-baseline-0.2','balance-1.2',$4)", [randomUUID(), profileId, facilityId, costTransaction]);
+  let queueRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { queueRollbackRejected = true; }
+  if (!queueRollbackRejected) throw new Error("Facility queue migration rollback with persisted queue was accepted.");
+  await client.query("DELETE FROM facility_queue_items WHERE profile_id = $1", [profileId]);
+  const queueRollback = await rollbackLatestMigration(testUrl);
+  if (queueRollback !== "008_facility_queue") throw new Error("Expected the empty facility queue migration to roll back first.");
   for (const invalid of ["0", "1.5"]) {
     let rejected = false;
     try { parseMicroUnits(invalid); } catch { rejected = true; }
