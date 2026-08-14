@@ -88,7 +88,7 @@ export class LazyAccrualService {
     for (const row of rows.rows) {
       const local = state.get(row.id);
       if (!local) throw new Error("Missing persisted accrual state.");
-      await client.query("UPDATE profile_facility_accrual_state SET last_accrued_at = to_timestamp($2::double precision / 1000), output_carry_numerator = $3, output_carry_denominator = $4, energy_carry_numerator = $5, energy_carry_denominator = $6 WHERE facility_id = $1", [row.id, asOfMs.toString(), local.outputCarry.numerator.toString(), local.outputCarry.denominator.toString(), local.energyCarry.numerator.toString(), local.energyCarry.denominator.toString()]);
+      await client.query("UPDATE profile_facility_accrual_state SET last_accrued_at = GREATEST(last_accrued_at, to_timestamp($2::double precision / 1000)), output_carry_numerator = $3, output_carry_denominator = $4, energy_carry_numerator = $5, energy_carry_denominator = $6 WHERE facility_id = $1", [row.id, asOfMs.toString(), local.outputCarry.numerator.toString(), local.outputCarry.denominator.toString(), local.energyCarry.numerator.toString(), local.energyCarry.denominator.toString()]);
     }
     const serialized = Object.fromEntries([...deltas.entries()].filter(([, value]) => value !== 0n).map(([key, value]) => [key, value.toString()])) as ResourceDeltas;
     if (Object.keys(serialized).length === 0) return { settled: false, elapsedMs: elapsedMax, deltas: {} };

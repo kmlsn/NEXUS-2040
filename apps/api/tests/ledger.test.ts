@@ -13,4 +13,12 @@ for (const invalid of ["0", "1.5", (POSTGRES_BIGINT_MAX + 1n).toString(), (POSTG
 }
 for (const invalid of fixture.rejected_units) assert.throws(() => resourceUnitsToMicro(invalid));
 assert.throws(() => resourceUnitsToMicro("1e3"));
+let state = 0x20400008;
+for (let index = 0; index < 256; index += 1) {
+  state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+  const magnitude = BigInt(state) * 1_000_000n + BigInt(index + 1);
+  const signed = index % 2 === 0 ? magnitude : -magnitude;
+  assert.equal(parseMicroUnits(signed.toString()), signed);
+  assert.throws(() => parseMicroUnits(`${signed.toString()}.0`));
+}
 console.log("PASS: ledger micro-unit conversion and PostgreSQL bigint bounds verified.");

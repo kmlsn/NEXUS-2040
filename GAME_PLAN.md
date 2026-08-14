@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.8` Negatif bakiye, eşzamanlı harcama, taşma ve saat geri gitmesi property testlerini ekle |
-| Kodlama durumu | `P2.7` tamamlandı; ekonomi değişmezlerini genişleten property-test görevi uygulanabilir |
+| Sonraki görev | Faz 2 çıkış kapısını doğrula ve Faz 3'ü `READY` durumuna geçir |
+| Kodlama durumu | `P2.8` tamamlandı; Faz 2 kapanış doğrulaması uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -227,7 +227,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 - [x] **P2.5** Ücretsiz tesis inşa kuyruğu, bitiş uzlaşması ve iptal iadesini uygula.
 - [x] **P2.6** Merkez ekranında kaynak nedeni, üretim tahmini ve enerji yetersizliği açıklamasını göster.
 - [x] **P2.7** Tesis eğrilerini ve 30 günlük tam-ledger aktif/seyrek oyuncu karşılaştırmasını `balance-1.3` ekonomi sözleşmesine göre doğrula.
-- [ ] **P2.8** Negatif bakiye, eşzamanlı harcama, taşma ve saat geri gitmesi property testlerini ekle.
+- [x] **P2.8** Negatif bakiye, eşzamanlı harcama, taşma ve saat geri gitmesi property testlerini ekle.
 
 ### Değişmezler
 
@@ -638,6 +638,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.5 | `008_facility_queue` migration, sunucu-saatli ücretsiz tesis inşa/yükseltme kuyruğu, atomik debit/bitir/iptal-iade, profil/tür/ledger-neden FK ve trigger korumaları; hedef-seviye snapshot, yarış/idempotency, eski→yeni üretim sınırı, `pnpm verify`, mimari/ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.5-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.6 | Sunucu-otoriteli `/v1/center` özeti, kaynak nedenleri, tam kesirli üretim tahmini ve enerji-kıtlığı açıklaması; istemciden profil kimliği kabul etmeyen D-024 bağlamı, loopback API, erişilebilir loading/error/yenile UI, `pnpm verify`, güvenlik/kalite incelemeleri ve `docs/test-reports/P2.6-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.7 | `010_balance_1_3` sürüm pin'i, sabit `seed=20260809` ve UUID'li 30 günlük izole PostgreSQL ledger karşılaştırıcısı; 24/48/72 saat ritimlerinde 2/10 operasyon farkı sırasıyla `%2.38/%6.85/%18.43` ve katı `<%20`, `pnpm verify`, Python model/fixture denetimi, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.7-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | P2.8 | D-017/D-019/D-021 için sabit LCG `seed=541065224` ile 16 overspend, 8 tam-bakiye yarışı, idempotent replay, underflow/overflow atomikliği ve heterojen cursor saat-geri-alma özellikleri; cursor gerilemesini önleyen sunucu düzeltmesi, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.8-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
