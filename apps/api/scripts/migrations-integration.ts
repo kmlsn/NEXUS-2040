@@ -25,6 +25,13 @@ try {
   await client.connect();
   const profileId = randomUUID();
   await client.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [profileId]);
+  await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'microgrid',1)", [randomUUID(), profileId]);
+  let duplicateFacilityRejected = false;
+  try { await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'microgrid',1)", [randomUUID(), profileId]); } catch { duplicateFacilityRejected = true; }
+  if (!duplicateFacilityRejected) throw new Error("Duplicate profile facility was accepted.");
+  let invalidFacilityLevelRejected = false;
+  try { await client.query("INSERT INTO profile_facilities(id, profile_id, facility_kind, level) VALUES($1,$2,'data_center',13)", [randomUUID(), profileId]); } catch { invalidFacilityLevelRejected = true; }
+  if (!invalidFacilityLevelRejected) throw new Error("Invalid facility level was accepted.");
   await client.query("INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'operation','same-key',$3,'pending')", [randomUUID(), profileId, "a".repeat(64)]);
   let duplicateRejected = false;
   try { await client.query("INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'operation','same-key',$3,'completed')", [randomUUID(), profileId, "b".repeat(64)]); } catch { duplicateRejected = true; }
@@ -61,6 +68,12 @@ try {
     if (!rejected) throw new Error(`Invalid amount ${invalid} was accepted.`);
   }
   let downRejected = false;
+  let facilitiesRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { facilitiesRollbackRejected = true; }
+  if (!facilitiesRollbackRejected) throw new Error("Profile facilities migration rollback with persisted data was accepted.");
+  await client.query("DELETE FROM profile_facilities WHERE profile_id = $1", [profileId]);
+  const facilitiesRollback = await rollbackLatestMigration(testUrl);
+  if (facilitiesRollback !== "006_profile_facilities") throw new Error("Expected the empty profile facilities migration to roll back first.");
   const completionRollback = await rollbackLatestMigration(testUrl);
   if (completionRollback !== "005_idempotency_completion_integrity") throw new Error("Expected the empty completion migration to roll back first.");
   const integrityRollback = await rollbackLatestMigration(testUrl);
