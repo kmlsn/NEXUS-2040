@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
+    "test": "tsx tests/center.test.tsx",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
-    "vite": "8.2.1"
+    "vite": "8.2.1",
+    "tsx": "4.23.11"
   }
 }

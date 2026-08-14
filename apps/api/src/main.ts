@@ -15,4 +15,4 @@ app.use((request: { headers: Record<string, unknown>; method: string; url: strin
   response.on("finish", () => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: "info", service: "api", event: "http_request", requestId, method: request.method, route: request.url.split("?")[0], statusCode: response.statusCode, durationMs: Date.now() - started })));
   next();
 });
-await app.listen(Number(process.env.API_PORT ?? 3000));
+await app.listen(Number(process.env.API_PORT ?? 3000), "127.0.0.1");
