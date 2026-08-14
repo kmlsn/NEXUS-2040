@@ -74,8 +74,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
       - run: pnpm install --frozen-lockfile
+      - run: python -m pip install --disable-pip-version-check -r tools/requirements.txt
       - run: pnpm services:up
       - run: pnpm test:integration
+      - run: pnpm balance:check
       - if: failure()
         run: pnpm services:logs
       - if: always()

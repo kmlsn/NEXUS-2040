@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.7` Tesis eğrilerini ve 30 günlük tam-ledger aktif/seyrek oyuncu karşılaştırmasını `balance-1.2` matematik sözleşmesine göre doğrula |
-| Kodlama durumu | `P2.6` tamamlandı; tesis eğrisi ve gerçek-ledger denge görevi uygulanabilir |
+| Sonraki görev | `P2.8` Negatif bakiye, eşzamanlı harcama, taşma ve saat geri gitmesi property testlerini ekle |
+| Kodlama durumu | `P2.7` tamamlandı; ekonomi değişmezlerini genişleten property-test görevi uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -226,7 +226,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 - [x] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
 - [x] **P2.5** Ücretsiz tesis inşa kuyruğu, bitiş uzlaşması ve iptal iadesini uygula.
 - [x] **P2.6** Merkez ekranında kaynak nedeni, üretim tahmini ve enerji yetersizliği açıklamasını göster.
-- [ ] **P2.7** Tesis eğrilerini ve 30 günlük tam-ledger aktif/seyrek oyuncu karşılaştırmasını `balance-1.2` matematik sözleşmesine göre doğrula.
+- [x] **P2.7** Tesis eğrilerini ve 30 günlük tam-ledger aktif/seyrek oyuncu karşılaştırmasını `balance-1.3` ekonomi sözleşmesine göre doğrula.
 - [ ] **P2.8** Negatif bakiye, eşzamanlı harcama, taşma ve saat geri gitmesi property testlerini ekle.
 
 ### Değişmezler
@@ -591,6 +591,8 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | D-022 | P2.5 yalnız tesis inşa/yükseltme kuyruğunu uygular. Arşiv GDD'deki araştırma kuyruğu ifadesinin proje kataloğu, maliyeti, süresi, önkoşulu ve ölçülebilir etkisi bulunmadığından işlevsiz araştırma kaydı eklenmez. Sürümlü araştırma proje kataloğu ve kuyruğu, operasyon statları/bant genişliği etkisiyle birlikte P4.1'in kapsamındadır. | Kabul | Araştırma için etkilerinden bağımsız, sürümlü bir erken-ekonomi kataloğu ve P2 gerçek-ledger denge kanıtı açıkça tasarlanırsa görev yeniden Faz 2'ye alınır. |
 | D-023 | P2.5 tesis kuyruğu hızlandırma/ücretli geçiş içermez. Yeni tesis hedef seviye 1'i, yükseltme hedef `mevcut+1` katalog satırını kullanır; Sermaye ve Bileşen maliyeti enqueue anında bir kez düşer, süre katalogdaki onda-dakikanın tam milisaniye karşılığıdır. Tesis yoksa bitişe kadar üretmez; yükseltmede eski seviye üretir. `now < finish_at` iptali saklanan maliyetin %100'ünü bir kez iade eder; `now >= finish_at` tamamlanma kazanır. | Kabul | P2.7 gerçek-ledger denge testi veya oyuncu araştırması, zaman/maliyet/iade eğrisinin baskı ya da enflasyon yarattığını gösterirse yeni formül sürümü ve test kanıtıyla değiştirilir. |
 | D-024 | Kimlik/oturum P8.2 kapsamına gelene kadar P2.6 merkez endpoint'i profil kimliğini istemciden kabul etmez; tek oyunculu yerel prototipte yalnız sunucunun `CENTER_PROFILE_ID` yapılandırmasındaki UUID'sini kullanır ve bu değer yoksa güvenli boş durum döndürür. Çok kullanıcılı dağıtımda bu bağlam gerçek oturum guard'ından türetilmeden endpoint açılmaz. | Kabul | P8.2 kimlik, yetki ve Origin sınırı gerçeklenince yapılandırmalı bağlam kaldırılır; istemci serbest `profileId` göndermeye başlamaz. |
+| D-025 | P2.7, Faz 4 operasyonu eklemeden §28.2'deki F/O/C/S karşılaştırıcısını sürümlü ve test-yalnız deterministik bir senaryo olarak mevcut PostgreSQL ledger'ına uygular. Senaryo aynı başlangıç tesis/bakiye/doktrin ile yalnız `2` ve `10` günlük operasyon niyetini değiştirir; operasyon ödülü/gideri oyun sonucu değil planın normalize edilmiş sabit karşılaştırıcısıdır. 24/48/72 saat claim ritimleri aynı senaryoda ayrıca ölçülür. Gerçek operasyon sonucu, ısı etkisi ve oyuncu ekonomisiyle final karşılaştırma P4/P9'da aynı kapıyı yeniden çalıştırır. | Kabul | Faz 4 operasyon sonuçları, P3/P4 dünya etkileri veya oyuncu verisi, test-yalnız karşılaştırıcıyı maddi olarak değiştirirse sürüm/seed/fixture ve P2.7 kanıtı birlikte yenilenir. |
+| D-026 | P2.7 gerçek-ledger ritim testi, `balance-1.2`nin `0.08*ln(1+n)` aktivite karşılaştırıcısının 72 saatlik ritimde `%35.1` fark ürettiğini kanıtladı. P2 ekonomi karşılaştırıcısı bu nedenle `balance-1.3` olarak `activity_p2(n)=min(0.12,0.035*ln(1+max(0,n)))` kullanır; 2/10 günlük fark her 24/48/72 saat ritminde katı `<%20` kalmalıdır. PCG, operasyon başarı/taktik, ödül ve tespit matematiği P4'e kadar `balance-1.2`de kalır. | Kabul | Gerçek P4 operasyon çıktıları veya canlı ekonomi gözlemi bu sınırı hedefi karşılamaz kılarsa P2/P4 ortak ekonomi sürümü, fixture ve 30-günlük test birlikte değiştirilir. |
 
 ## 25. Risk kaydı
 
@@ -635,6 +637,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.4 | `007_lazy_accrual` migration, atomik server settlement, final-window 24-36 saatlik depolama, depolanmış enerjiyle öncelikli kısmi verim ve D-021 canonical kesirli taşıma; TypeScript/Python ortak accrual fixture, `tools/balance_model.py` çapraz-oran korunum denetimi, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.4-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.5 | `008_facility_queue` migration, sunucu-saatli ücretsiz tesis inşa/yükseltme kuyruğu, atomik debit/bitir/iptal-iade, profil/tür/ledger-neden FK ve trigger korumaları; hedef-seviye snapshot, yarış/idempotency, eski→yeni üretim sınırı, `pnpm verify`, mimari/ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.5-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.6 | Sunucu-otoriteli `/v1/center` özeti, kaynak nedenleri, tam kesirli üretim tahmini ve enerji-kıtlığı açıklaması; istemciden profil kimliği kabul etmeyen D-024 bağlamı, loopback API, erişilebilir loading/error/yenile UI, `pnpm verify`, güvenlik/kalite incelemeleri ve `docs/test-reports/P2.6-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | P2.7 | `010_balance_1_3` sürüm pin'i, sabit `seed=20260809` ve UUID'li 30 günlük izole PostgreSQL ledger karşılaştırıcısı; 24/48/72 saat ritimlerinde 2/10 operasyon farkı sırasıyla `%2.38/%6.85/%18.43` ve katı `<%20`, `pnpm verify`, Python model/fixture denetimi, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.7-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
@@ -703,10 +706,10 @@ Eş-kademe Monte Carlo, `seed=20260809` ve profil başına en az `100000` örnek
 
 Aktif/seyrek oyuncu adaleti, yalnız bonus çarpanıyla değil 30 günlük normalize ledger ile ölçülür. Aynı seed, doktrin, tesis ve sözleşme takviminde yalnız günlük operasyon sayısı değişir:
 
-- `activity(n)=min(0.20,0.08*ln(1+max(0,n)))`.
-- Günlük tesis kredisi `F=1000`; operasyon kredisi `O=F*activity(n)`; operasyon gideri `C=0.35*O`; yükseltme/araştırma sink'i `S=0.25*(F+O)`.
-- `Net30(n)=30*(F+O-C-S)`; kapı `Net30(10)/Net30(2)-1 < 0.20`.
-- Referans sonuçları: `Net30(2)=23554.67`, `Net30(10)=24801.98`, fark `%5.3`.
+- `balance-1.2` operasyon karşılaştırıcısı `activity(n)=min(0.20,0.08*ln(1+max(0,n)))` olarak korunur; P2.7 gerçek-ledger ekonomi karşılaştırıcısı D-026 uyarınca `activity_p2(n)=min(0.12,0.035*ln(1+max(0,n)))` ve `formula_version=balance-1.3` kullanır.
+- P2.7 test senaryosunda 24 saatlik tesis kredisi `F=1000`, 48/72 saatlik ritimde mevcut depolama penceresinin alınamayan üretimiyle sırasıyla `500/333.333…` olur; operasyon kredisi `O=1000*activity_p2(n)`; gider `C=0.35*O`; sink `S=0.25*(1000+O)`.
+- Her ritim için `Net30=30*(F+O-C-S)` ve kapı `Net30(10)/Net30(2)-1 < 0.20`'dir.
+- `balance-1.3` referansları: 24 saatte `22961.42/23507.12` (`%2.38`), 48 saatte `7961.42/8507.12` (`%6.85`), 72 saatte `2961.42/3507.12` (`%18.43`) — değerler sırasıyla 2/10 operasyon-gün içindir.
 - Faz 2 gerçek kaynak shadow-price tablosunu kurar; Faz 4 gerçek operasyon sonuçlarını ledger'a bağlar. Aynı karşılaştırıcı gerçek ledger ile tekrar çalışmadan Faz 9 kapanmaz.
 
 ### 28.3 Pazar, sözleşme ve NPC adaptasyonu
