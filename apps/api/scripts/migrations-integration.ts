@@ -27,6 +27,21 @@ try {
   let duplicateRejected = false;
   try { await client.query("INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'operation','same-key',$3,'completed')", [randomUUID(), profileId, "b".repeat(64)]); } catch { duplicateRejected = true; }
   if (!duplicateRejected) throw new Error("Duplicate idempotency key was accepted.");
+  const concurrentClients = [new Client({ connectionString: testUrl }), new Client({ connectionString: testUrl })];
+  await Promise.all(concurrentClients.map((concurrentClient) => concurrentClient.connect()));
+  try {
+    const concurrentResults = await Promise.allSettled(concurrentClients.map((concurrentClient, index) => concurrentClient.query(
+      "INSERT INTO idempotency_requests(id, profile_id, scope, idempotency_key, request_fingerprint, status) VALUES($1,$2,'operation','concurrent-key',$3,'completed')",
+      [randomUUID(), profileId, index === 0 ? "c".repeat(64) : "d".repeat(64)],
+    )));
+    if (concurrentResults.filter((result) => result.status === "fulfilled").length !== 1 || concurrentResults.filter((result) => result.status === "rejected").length !== 1) {
+      throw new Error("Concurrent duplicate idempotency requests were not resolved to exactly one record.");
+    }
+  } finally {
+    await Promise.all(concurrentClients.map((concurrentClient) => concurrentClient.end()));
+  }
+  const concurrentCount = await client.query<{ count: string }>("SELECT count(*) FROM idempotency_requests WHERE profile_id = $1 AND scope = 'operation' AND idempotency_key = 'concurrent-key'", [profileId]);
+  if (concurrentCount.rows[0]?.count !== "1") throw new Error("Concurrent idempotency key created more than one record.");
   const request = await client.query<{ id: string }>("SELECT id FROM idempotency_requests WHERE profile_id = $1", [profileId]);
   const transactionId = randomUUID();
   await client.query("INSERT INTO ledger_transactions(id, profile_id, idempotency_request_id, reason_code) VALUES($1,$2,$3,'test_credit')", [transactionId, profileId, request.rows[0]?.id]);
@@ -46,7 +61,7 @@ try {
   try { await rollbackLatestMigration(testUrl); } catch { downRejected = true; }
   if (!downRejected) throw new Error("Rollback with persisted ledger data was accepted.");
   await client.end();
-  console.log("PASS: migrations, version pinning, idempotency, immutable ledger, and rollback guard verified.");
+  console.log("PASS: migrations, version pinning, sequential/concurrent idempotency, immutable ledger, and rollback guard verified.");
 } finally {
   const cleanup = new Client({ connectionString: adminUrl });
   await cleanup.connect();

@@ -31,12 +31,12 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 
 | Alan | Değer |
 |---|---|
-| Mevcut faz | Faz 1 - Teknik temel (`ACTIVE`) |
-| Sonraki faz | Faz 2 - Stratejik ekonomi (`BLOCKED`) |
-| Sonraki görev | Faz 1 çıkış kapısını doğrula |
-| Kodlama durumu | `P1.8` tamamlandı; Faz 1 kapanış doğrulaması başlayabilir |
-| Son faz kapısı | Faz 0 plan, matematik, ajan ve yaşam döngüsü kanıtları |
-| Başlatma kuralı | Kullanıcı Faz 1'i başlattı; yalnız Faz 1 görevleri uygulanabilir. |
+| Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
+| Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
+| Sonraki görev | `P2.1` beş kaynak için ledger işlemlerini uygula |
+| Kodlama durumu | Faz 1 kapısı geçti; Faz 2 etkin ve ilk ekonomik çekirdek görevi uygulanabilir |
+| Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
+| Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
 ## 3. Ürün tanımı
 
@@ -142,8 +142,8 @@ pnpm verify
 | Faz | Ad | Durum | 3 kişilik hedef süre | Ana çıkış |
 |---:|---|---|---:|---|
 | 0 | Plan ve çalışma sistemi | `COMPLETE` | 3 hafta araştırma dahil | Plan, beceriler ve ajanlar doğrulandı |
-| 1 | Teknik temel | `ACTIVE` | 4 hafta | Uygulamalar, veri tabanı, CI ve komut sözleşmesi çalışıyor |
-| 2 | Stratejik ekonomi | `BLOCKED` | 5 hafta | Beş kaynak ve tesis döngüsü uçtan uca çalışıyor |
+| 1 | Teknik temel | `COMPLETE` | 4 hafta | Uygulamalar, veri tabanı, CI ve komut sözleşmesi çalışıyor |
+| 2 | Stratejik ekonomi | `ACTIVE` | 5 hafta | Beş kaynak ve tesis döngüsü uçtan uca çalışıyor |
 | 3 | Yaşayan NPC dünyası | `BLOCKED` | 3 hafta | Dünya çevrimi, pazar ve sözleşmeler deterministik |
 | 4 | Taktik operasyon simülasyonu | `BLOCKED` | 4 hafta | Keşif-yükleme-sonuç-rapor döngüsü oynanabilir |
 | 5 | Node Routing | `BLOCKED` | 2 hafta | Mini oyun erişilebilir ve sunucu doğrulamalı |
@@ -618,6 +618,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-13 | P1.6 | API/worker Nest liveness endpointleri, yapılandırılmış JSON loglar, güvenli hata sözleşmesi ve request correlation; iki ardışık HTTP smoke, kalite/lifecycle PASS, PostgreSQL/Redis entegrasyonu ve `pnpm verify` PASS | Geçti |
 | 2026-08-14 | P1.7 | `.github/workflows/ci.yml`, platform-bağımsız PCG fixture sarmalayıcısı; GitHub Actions run `31744637453` içinde `lint/typecheck/unit/integration` PASS ve `main` için strict required checks/PR koruması; kalite/lifecycle PASS | Geçti |
 | 2026-08-14 | P1.8 | `README.md`, optional `.env` Compose/API sarmalayıcıları; varsayılan ve özel portlu yerel başlangıç/migration/entegrasyon akışı, `pnpm verify`, kalite ve `docs/test-reports/P1.8-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | Faz 1 kapısı | `docs/phase-reports/P1-gate.md`, `docs/test-reports/P1-lifecycle.md`; web/API/worker liveness, PostgreSQL/Redis sınırı, eşzamanlı idempotency, CI koruması ve tam doğrulama PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 

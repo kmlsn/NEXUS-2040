@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
