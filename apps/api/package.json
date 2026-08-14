@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/main.ts",
     "migrate": "tsx --env-file-if-exists=../../.env src/migrations/cli.ts up",
-    "test:integration": "tsx --env-file-if-exists=../../.env scripts/migrations-integration.ts",
+    "test": "tsx tests/ledger.test.ts",
+    "test:integration": "tsx --env-file-if-exists=../../.env scripts/migrations-integration.ts && tsx --env-file-if-exists=../../.env scripts/ledger-integration.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

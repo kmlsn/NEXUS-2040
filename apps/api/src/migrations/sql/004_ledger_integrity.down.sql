@@ -1,0 +1,7 @@
+ALTER TABLE resource_ledger_entries DROP CONSTRAINT resource_ledger_entries_reason_code_check;
+ALTER TABLE ledger_transactions DROP CONSTRAINT ledger_transactions_reason_code_check;
+ALTER TABLE idempotency_requests
+  DROP CONSTRAINT idempotency_requests_reasonless_status_check,
+  DROP CONSTRAINT idempotency_requests_completed_transaction_profile_fk,
+  ADD CONSTRAINT idempotency_requests_completed_transaction_fk
+    FOREIGN KEY (completed_transaction_id) REFERENCES ledger_transactions(id);

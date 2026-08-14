@@ -1,0 +1,1 @@
+ALTER TABLE idempotency_requests DROP CONSTRAINT idempotency_requests_completion_state_check;

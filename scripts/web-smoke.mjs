@@ -29,6 +29,6 @@ try {
   }
   console.log("PASS: web production shell liveness verified.");
 } finally {
-  if (process.platform === "win32") execFileSync("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore" });
+  if (process.platform === "win32") { try { execFileSync("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore" }); } catch { /* preview may have already exited after its successful response */ } }
   else child.kill();
 }
