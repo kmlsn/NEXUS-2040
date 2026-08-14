@@ -33,8 +33,8 @@ Bu dosya oyunun günlük geliştirme, kapsam, görev, test, faz kapısı ve kara
 |---|---|
 | Mevcut faz | Faz 2 - Stratejik ekonomi (`ACTIVE`) |
 | Sonraki faz | Faz 3 - Yaşayan NPC dünyası (`BLOCKED`) |
-| Sonraki görev | `P2.2` beş tesis türü ve seviye 1-12 veri şemasını oluştur |
-| Kodlama durumu | `P2.1` tamamlandı; tesis veri şeması görevi uygulanabilir |
+| Sonraki görev | `P2.3` enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz |
+| Kodlama durumu | `P2.2` tamamlandı; enerji çözümleyicisi görevi uygulanabilir |
 | Son faz kapısı | Faz 1 teknik temel, kalite ve yaşam döngüsü kanıtları |
 | Başlatma kuralı | Kullanıcı kesintisiz ve sıralı geliştirmeye açık yetki verdi; yalnız Faz 2 görevleri uygulanabilir. |
 
@@ -221,7 +221,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 ### Görevler
 
 - [x] **P2.1** Enerji, İşlem Gücü, Bileşen, Sermaye ve Uzmanlık ledger işlemlerini uygula.
-- [ ] **P2.2** Beş tesis türünü ve seviye 1-12 veri şemasını oluştur.
+- [x] **P2.2** Beş tesis türünü ve seviye 1-12 veri şemasını oluştur.
 - [ ] **P2.3** Enerji önceliği ve kısmi verim çözümleyicisini saf fonksiyon olarak yaz.
 - [ ] **P2.4** 24-36 saatlik lazy accrual ve depolama kapasitesini uygula.
 - [ ] **P2.5** Ücretsiz inşa/araştırma kuyruğu, bitiş uzlaşması ve iptal iadesini uygula.
@@ -584,6 +584,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | D-015 | Gerçek ad çakışması nedeniyle önceki endüstri organizasyonu adı `Nexilune Industrial` olarak değiştirildi; arşiv DOCX'teki eski ad geçersizdir. | Kabul | Yeni ad için doğrulanmış bir çakışma bulunursa aynı süreç tekrarlanır. |
 | D-016 | Bağımsız `lifecycle_game_tester` her davranış görevi, faz kapısı, final release ve yayın sonrası uyumlulukta zorunludur. | Değişmez | Kullanıcı test kapsamını açıkça değiştirirse. |
 | D-017 | Kaynak ledger serileştirmesi `1 kaynak = 1_000_000` mikro-birim ve half-away-from-zero tek-dönüşüm kuralını kullanır; bu bir encoding sözleşmesidir, ekonomi katsayılarını veya `balance-1.2` sürümünü değiştirmez. | Kabul | Birim ölçeği ya da yuvarlama ancak karar, model ve çapraz-çalışma zamanı kanıtı birlikte güncellenirse değişir. |
+| D-018 | P2.2 tesis kataloğu beş türün seviye 1-12 şemasını tanımlar; profil tesis satırları otomatik başlangıç hibesiyle oluşturulmaz. Satır oluşturma, seviye değişimi ve maliyet uygulaması P2.5'in sunucu-otoriteli inşa akışına aittir. | Kabul | Başlangıç tesisleri ancak denge modeli, onboarding akışı ve plan kanıtıyla birlikte açıkça tasarlanırsa eklenir. |
 
 ## 25. Risk kaydı
 
@@ -622,6 +623,8 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | Faz 1 kapısı | `docs/phase-reports/P1-gate.md`, `docs/test-reports/P1-lifecycle.md`; web/API/worker liveness, PostgreSQL/Redis sınırı, eşzamanlı idempotency, CI koruması ve tam doğrulama PASS | Geçti |
 | 2026-08-14 | P2.1 plan netleştirmesi | Ekonomi, mimari ve güvenlik incelemeleri signed-64/scale ve eşzamanlı negatif-bakiye açığını saptadı; Bölüm 28 ve D-017 `1_000_000` mikro-birim encoding'ini sabitledi. Başlangıç hibesi, tesis oranı ve shadow-price bu görev kapsamına alınmadı. | Geçti |
 | 2026-08-14 | P2.1 | `003-005` ledger migrations, `PostgresLedgerService`, D-017 Python/TypeScript fixture, legacy-backfill, idempotency/replay/conflict, profile-FK, reason allowlist ve concurrent-spend testleri; `pnpm verify`, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.1-lifecycle.md` PASS | Geçti |
+| 2026-08-14 | P2.2 plan netleştirmesi | Mimari ve ekonomi incelemeleri tesis başlangıç satırlarının/giriş hibelerinin plan dışı olduğunu belirledi; D-018 katalog ile gelecekteki inşa durumu sahipliğini ayırdı. | Geçti |
+| 2026-08-14 | P2.2 | `packages/content` 5×12 tesis kataloğu, D-017 mikro-birim/tenths encoding'i ve `006_profile_facilities` migration; 60 satır formül/monotonluk, DB kısıtları/rollback, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.2-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
