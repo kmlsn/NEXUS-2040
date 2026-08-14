@@ -9,6 +9,7 @@ Tek oyunculu, sunucu otoriteli PvE strateji simülasyonu. Geliştirme kapsamı v
 ```powershell
 corepack enable
 pnpm install --frozen-lockfile
+py -3 -m pip install -r tools/requirements.txt # balance model dependency
 Copy-Item .env.example .env # isteğe bağlı yerel port/kimlik bilgisi değişikliği
 pnpm services:up
 pnpm --filter @nexus/api run migrate
@@ -51,6 +52,6 @@ pnpm services:down
 | `pnpm test` | Birim, fixture ve HTTP smoke kontrolleri. |
 | `pnpm test:integration` | PostgreSQL/Redis ve migration entegrasyonu; servisler açık olmalı. |
 | `pnpm test:e2e` | Henüz planlı, açık no-op. |
-| `pnpm balance:check` | Henüz planlı, açık no-op. |
+| `pnpm balance:check` | Sürümlü tesis/accrual fixture'ları ve Python denge modeli denetimi. |
 | `pnpm plan:check` | Plan tutarlılığı. |
 | `pnpm verify` | Mevcut zorunlu kapıların tamamı; entegrasyon servisleri açık olmalı. |

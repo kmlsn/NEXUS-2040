@@ -517,6 +517,11 @@ def activity_bonus(operations_per_day: float) -> float:
     return min(0.20, 0.08 * math.log1p(max(0.0, operations_per_day)))
 
 
+def p2_economy_activity_bonus(operations_per_day: float) -> float:
+    """Versioned P2.7 ledger-comparator bonus; P4 operation resolution stays on balance-1.2."""
+    return min(0.12, 0.035 * math.log1p(max(0.0, operations_per_day)))
+
+
 def activity_profiles() -> list[dict]:
     profiles = [("Bakım", 0), ("Kısa", 2), ("Düzenli", 5), ("Yoğun", 10), ("Maraton", 30)]
     return [
@@ -545,6 +550,23 @@ def ledger_progression(operations_per_day: int, days: int = 30) -> dict:
         "operation_cost_debit": round_half_away(operation_cost * days, 2),
         "upgrade_research_sink_debit": round_half_away(progression_sink * days, 2),
         "net_progression_value": round_half_away(daily_net * days, 2),
+    }
+
+
+def p2_ledger_progression(operations_per_day: int, cadence_hours: int, days: int = 30) -> dict:
+    """`balance-1.3` deterministic counterpart of the P2.7 PostgreSQL fixture."""
+    if cadence_hours not in (24, 48, 72):
+        raise ValueError("P2 cadence must be 24, 48, or 72 hours")
+    facility_credit = 1_000.0 * 24 / cadence_hours
+    operation_credit = 1_000.0 * p2_economy_activity_bonus(operations_per_day)
+    operation_cost = operation_credit * 0.35
+    progression_sink = (1_000.0 + operation_credit) * 0.25
+    daily_net = facility_credit + operation_credit - operation_cost - progression_sink
+    return {
+        "formula_version": "balance-1.3",
+        "operations_per_day": operations_per_day,
+        "cadence_hours": cadence_hours,
+        "net_progression_value": round_half_away(daily_net * days, 6),
     }
 
 
@@ -834,6 +856,12 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     checks.append(
         f"30 günlük normalize ledger'da 2 ve 10 operasyon/gün ilerleme farkı %{gap*100:.1f}; hedef <%20."
     )
+    for cadence_hours in (24, 48, 72):
+        p2_casual = p2_ledger_progression(2, cadence_hours)
+        p2_engaged = p2_ledger_progression(10, cadence_hours)
+        p2_gap = p2_engaged["net_progression_value"] / p2_casual["net_progression_value"] - 1
+        assert p2_casual["net_progression_value"] > 0 and p2_engaged["net_progression_value"] > 0 and p2_gap < 0.20
+    checks.append("balance-1.3 P2 ledger karşılaştırıcısı 24/48/72 saat ritimlerinde 2/10 operasyon farkını katı <%20 tutuyor.")
     assert MARKET_CORRIDOR == (0.85, 1.15)
     assert market_transition(1.0, -10.0) == MARKET_CORRIDOR[0]
     assert market_transition(1.0, 10.0) == MARKET_CORRIDOR[1]
@@ -886,10 +914,14 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     return checks
 
 
-def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    name = "segoeuib.ttf" if bold else "segoeui.ttf"
-    path = Path("C:/Windows/Fonts") / name
-    return ImageFont.truetype(str(path), size=size)
+def _font(size: int, bold: bool = False) -> ImageFont.ImageFont:
+    names = ("segoeuib.ttf", "DejaVuSans-Bold.ttf") if bold else ("segoeui.ttf", "DejaVuSans.ttf")
+    for name in names:
+        try:
+            return ImageFont.truetype(name, size=size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
 
 
 def _line_chart(

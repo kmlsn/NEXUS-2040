@@ -1864,6 +1864,7 @@
     "Hedef kademesi yükseldikçe başarı oranı her profilde düşüyor.",
     "Node Routing etkisi nötrden en iyi skora en fazla +10 yüzde puan; en kötüden nötre en fazla +10 puan.",
     "30 günlük normalize ledger'da 2 ve 10 operasyon/gün ilerleme farkı %5.3; hedef <%20.",
+    "balance-1.3 P2 ledger karşılaştırıcısı 24/48/72 saat ritimlerinde 2/10 operasyon farkını katı <%20 tutuyor.",
     "Pazar yapılandırması ve zorlanmış uç şoklar 0,85-1,15 koridoruna kilitli.",
     "Teklif/teminat matematiği hazırlık ve adil fiyatı ödüllendiriyor; iadeler sıralı ve sınırlı.",
     "Yükleme/mod, Node geçerliliği, sürümlü planlı çözüm ve 0-100 dünya uygulaması sınır kontrollerini geçiyor.",

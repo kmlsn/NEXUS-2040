@@ -7,7 +7,7 @@
     "start": "tsx src/main.ts",
     "migrate": "tsx --env-file-if-exists=../../.env src/migrations/cli.ts up",
     "test": "tsx tests/ledger.test.ts",
-    "test:integration": "tsx --env-file-if-exists=../../.env scripts/migrations-integration.ts && tsx --env-file-if-exists=../../.env scripts/ledger-integration.ts",
+    "test:integration": "tsx --env-file-if-exists=../../.env scripts/migrations-integration.ts && tsx --env-file-if-exists=../../.env scripts/ledger-integration.ts && tsx --env-file-if-exists=../../.env scripts/p2-7-ledger-balance-integration.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

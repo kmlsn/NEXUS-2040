@@ -24,6 +24,14 @@ try {
   const client = new Client({ connectionString: testUrl });
   client.on("error", () => undefined);
   await client.connect();
+  const balance13Profile = randomUUID();
+  await client.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.3')", [balance13Profile]);
+  let balance13RollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { balance13RollbackRejected = true; }
+  if (!balance13RollbackRejected) throw new Error("balance-1.3 migration rollback with persisted profile was accepted.");
+  await client.query("DELETE FROM profiles WHERE id=$1", [balance13Profile]);
+  const balance13Rollback = await rollbackLatestMigration(testUrl);
+  if (balance13Rollback !== "010_balance_1_3") throw new Error("Expected the empty balance-1.3 migration to roll back first.");
   const profileId = randomUUID();
   await client.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [profileId]);
   const facilityId = randomUUID();
