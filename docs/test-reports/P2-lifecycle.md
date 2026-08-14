@@ -54,4 +54,3 @@ No P0 or P1 defect was observed. The initial chained integration interruption di
 
 - Full browser E2E is **NOT VERIFIED**: `pnpm test:e2e` explicitly reports `DEFERRED` because a complete browser game flow is not delivered before the interface phases. The Phase 2 server-authoritative player journey and delivered center screen were independently exercised; no future operation, contract, NPC, or Node Routing feature was required.
 - Manual cross-browser matrix, keyboard/focus traversal beyond the automated center test, color-independent review, reduced motion, API/load/FPS benchmarks, worker/Redis 10,000-event resilience, backup/restore, SAST/dependency audit, and release acceptance are **NOT VERIFIED**. The plan assigns these to later UI, performance/security, or release phases.
-
