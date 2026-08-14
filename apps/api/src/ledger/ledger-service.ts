@@ -4,7 +4,7 @@ import { assertPostgresBigInt, parseMicroUnits } from "./micro-units";
 
 export const RESOURCE_KINDS = ["energy", "compute", "components", "capital", "expertise"] as const;
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
-export const LEDGER_REASONS = ["system_grant", "facility_cost", "facility_refund", "accrual_output", "operation_cost", "operation_reward", "system_reversal"] as const;
+export const LEDGER_REASONS = ["system_grant", "facility_cost", "facility_refund", "accrual_output", "accrual_settlement", "operation_cost", "operation_reward", "system_reversal"] as const;
 export type LedgerReason = (typeof LEDGER_REASONS)[number];
 export type ResourceDeltas = Partial<Record<ResourceKind, string>>;
 
@@ -42,6 +42,7 @@ function validateReason(reason: LedgerReason, deltas: Array<[ResourceKind, bigin
   const hasPositive = deltas.some(([, amount]) => amount > 0n);
   const hasNegative = deltas.some(([, amount]) => amount < 0n);
   if (reason === "system_reversal") return;
+  if (reason === "accrual_settlement") return;
   if (["system_grant", "facility_refund", "accrual_output", "operation_reward"].includes(reason) && (!hasPositive || hasNegative)) throw new Error("Ledger source reasons require positive deltas only.");
   if (["facility_cost", "operation_cost"].includes(reason) && (!hasNegative || hasPositive)) throw new Error("Ledger cost reasons require negative deltas only.");
 }
@@ -61,14 +62,27 @@ export class PostgresLedgerService {
   constructor(private readonly pool: Pool) {}
 
   async apply(command: LedgerCommand): Promise<LedgerOutcome> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const outcome = await this.applyInTransaction(client, command);
+      await client.query("COMMIT");
+      return outcome;
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /** Applies an idempotent ledger intent inside the caller's already-open transaction. */
+  async applyInTransaction(client: PoolClient, command: LedgerCommand): Promise<LedgerOutcome> {
     if (!scopePattern.test(command.scope) || command.idempotencyKey.length < 1 || command.idempotencyKey.length > 160) throw new Error("Ledger command metadata is invalid.");
     const deltas = canonicalDeltas(command.deltas);
     validateReason(command.reason, deltas);
     const requestFingerprint = fingerprint(command, deltas);
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN");
-      const profile = await client.query("SELECT id FROM profiles WHERE id = $1 FOR UPDATE", [command.profileId]);
+    const profile = await client.query("SELECT id FROM profiles WHERE id = $1 FOR UPDATE", [command.profileId]);
       if (profile.rowCount !== 1) throw new ProfileNotFoundError("Profile does not exist.");
       await client.query("INSERT INTO resource_balances(profile_id, resource, balance_micro) SELECT $1, unnest(enum_range(NULL::resource_kind)), 0 ON CONFLICT DO NOTHING", [command.profileId]);
       await client.query("SELECT resource FROM resource_balances WHERE profile_id = $1 ORDER BY resource FOR UPDATE", [command.profileId]);
@@ -78,7 +92,6 @@ export class PostgresLedgerService {
         if (!row || row.request_fingerprint !== requestFingerprint) throw new IdempotencyKeyReusedError("Idempotency key was already used for another command.");
         if (row.status !== "completed" || !row.completed_transaction_id) throw new Error("Idempotency request is not recoverable.");
         const balances = await readBalances(client, command.profileId);
-        await client.query("COMMIT");
         return { transactionId: row.completed_transaction_id, replayed: true, balances };
       }
       const requestId = randomUUID();
@@ -98,13 +111,6 @@ export class PostgresLedgerService {
       }
       await client.query("UPDATE idempotency_requests SET status = 'completed', completed_transaction_id = $2 WHERE id = $1", [requestId, transactionId]);
       const outcomeBalances = Object.fromEntries(RESOURCE_KINDS.map((resource) => [resource, nextBalances.get(resource)?.toString()])) as Record<ResourceKind, string>;
-      await client.query("COMMIT");
-      return { transactionId, replayed: false, balances: outcomeBalances };
-    } catch (error) {
-      await client.query("ROLLBACK").catch(() => undefined);
-      throw error;
-    } finally {
-      client.release();
-    }
+    return { transactionId, replayed: false, balances: outcomeBalances };
   }
 }

@@ -419,6 +419,53 @@ def allocate_energy_micro(available_micro: int, facilities: list[dict]) -> list[
     return result
 
 
+def accrue_exact_micro_rate(rate_numerator: int, rate_denominator: int, elapsed_ms: int, carry_numerator: int = 0) -> tuple[int, int, int]:
+    """P2.4 reference: convert an exact micro/hour rate without float rounding."""
+    hour_ms = 3_600_000
+    denominator = rate_denominator * hour_ms
+    if rate_numerator < 0 or rate_denominator <= 0 or elapsed_ms < 0 or not 0 <= carry_numerator < denominator:
+        raise ValueError("invalid exact accrual")
+    whole_hours, partial_ms = divmod(elapsed_ms, hour_ms)
+    per_hour_whole, per_hour_remainder = divmod(rate_numerator, rate_denominator)
+    whole_output = per_hour_whole * whole_hours + (per_hour_remainder * whole_hours) // rate_denominator
+    whole_remainder = (per_hour_remainder * whole_hours) % rate_denominator
+    partial_whole, partial_remainder_rate = divmod(per_hour_whole, hour_ms)
+    partial_output = partial_whole * partial_ms + (partial_remainder_rate * partial_ms) // hour_ms
+    partial_remainder = (partial_remainder_rate * partial_ms) % hour_ms
+    mixed_remainder = whole_remainder * hour_ms + per_hour_remainder * partial_ms + partial_remainder * rate_denominator + carry_numerator
+    produced = whole_output + partial_output + mixed_remainder // denominator
+    carry = mixed_remainder % denominator
+    if produced > POSTGRES_BIGINT_MAX:
+        raise ValueError("accrual exceeds PostgreSQL bigint range")
+    return produced, carry, denominator
+
+
+def accrue_canonical_micro_rates(segments: list[tuple[int, int, int]]) -> tuple[int, int, int]:
+    """D-021 reference carry: preserve a fractional credit when its rate changes."""
+    produced = 0
+    carry_numerator, carry_denominator = 0, 1
+    for rate_numerator, rate_denominator, elapsed_ms in segments:
+        whole, residue, denominator = accrue_exact_micro_rate(rate_numerator, rate_denominator, elapsed_ms)
+        shared_denominator = carry_denominator // math.gcd(carry_denominator, denominator) * denominator
+        combined_numerator = carry_numerator * (shared_denominator // carry_denominator) + residue * (shared_denominator // denominator)
+        produced += whole + combined_numerator // shared_denominator
+        carry_numerator = combined_numerator % shared_denominator
+        carry_denominator = shared_denominator
+        if carry_numerator == 0:
+            carry_denominator = 1
+        else:
+            divisor = math.gcd(carry_numerator, carry_denominator)
+            carry_numerator //= divisor
+            carry_denominator //= divisor
+    return produced, carry_numerator, carry_denominator
+
+
+def capped_accrual_elapsed(last_ms: int, as_of_ms: int, storage_tenths_hours: int) -> int:
+    if not 240 <= storage_tenths_hours <= 360:
+        raise ValueError("invalid storage window")
+    return min(max(0, as_of_ms - last_ms), storage_tenths_hours * 360_000)
+
+
 def facility_capital_cost(base_cost: int, level: int) -> int:
     return int(round_half_away(base_cost * 1.55 ** (level - 1)))
 
@@ -745,6 +792,16 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     assert [row["allocation_micro"] for row in exact_allocation] == [0, 70_000_000, 20_000_000, 0]
     assert exact_allocation[2]["actual_output_micro_per_hour_numerator"] == 32_000_000
     assert exact_allocation[2]["actual_output_micro_per_hour_denominator"] == 9
+    whole, carry, denominator = accrue_exact_micro_rate(32_000_000, 9, 86_400_000)
+    assert (whole, carry, denominator) == (85_333_333, 10_800_000, 32_400_000)
+    first, first_carry, _ = accrue_exact_micro_rate(32_000_000, 9, 28_800_000)
+    second, second_carry, _ = accrue_exact_micro_rate(32_000_000, 9, 57_600_000, first_carry)
+    assert first + second == whole and second_carry == carry
+    high_whole, high_carry, high_denominator = accrue_exact_micro_rate(523_000_875_946_378_408, 432_314_817, 129_600_000)
+    assert (high_whole, high_carry, high_denominator) == (43_551_668_352, 1_548_183_974_400_000, 1_556_333_341_200_000)
+    assert accrue_canonical_micro_rates([(32_000_000, 9, 3_600_000), (16_000_000, 9, 3_600_000)]) == (5_333_333, 1, 3)
+    assert capped_accrual_elapsed(0, 172_800_000, 240) == 86_400_000
+    assert capped_accrual_elapsed(10, 5, 240) == 0
     checks.append("Enerji çözümleyicisi öncelik/id sırasını, korunumu ve doğrusal kısmi verimi sağlıyor.")
     assert all(0.60 <= row["success_rate"] <= 0.85 for row in matched)
     checks.append("Eş-kademe başarı oranları %60-%85 tasarım bandında.")

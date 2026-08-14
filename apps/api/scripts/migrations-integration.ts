@@ -68,9 +68,16 @@ try {
     if (!rejected) throw new Error(`Invalid amount ${invalid} was accepted.`);
   }
   let downRejected = false;
+  await client.query("INSERT INTO profile_facility_accrual_state(facility_id) SELECT id FROM profile_facilities WHERE profile_id = $1", [profileId]);
   let facilitiesRollbackRejected = false;
   try { await rollbackLatestMigration(testUrl); } catch { facilitiesRollbackRejected = true; }
-  if (!facilitiesRollbackRejected) throw new Error("Profile facilities migration rollback with persisted data was accepted.");
+  if (!facilitiesRollbackRejected) throw new Error("Lazy accrual migration rollback with persisted state was accepted.");
+  await client.query("DELETE FROM profile_facility_accrual_state WHERE facility_id IN (SELECT id FROM profile_facilities WHERE profile_id = $1)", [profileId]);
+  const accrualRollback = await rollbackLatestMigration(testUrl);
+  if (accrualRollback !== "007_lazy_accrual") throw new Error("Expected the empty lazy accrual migration to roll back first.");
+  let profileFacilitiesRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { profileFacilitiesRollbackRejected = true; }
+  if (!profileFacilitiesRollbackRejected) throw new Error("Profile facilities migration rollback with persisted data was accepted.");
   await client.query("DELETE FROM profile_facilities WHERE profile_id = $1", [profileId]);
   const facilitiesRollback = await rollbackLatestMigration(testUrl);
   if (facilitiesRollback !== "006_profile_facilities") throw new Error("Expected the empty profile facilities migration to roll back first.");
