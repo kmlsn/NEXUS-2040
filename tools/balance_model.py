@@ -914,10 +914,14 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     return checks
 
 
-def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    name = "segoeuib.ttf" if bold else "segoeui.ttf"
-    path = Path("C:/Windows/Fonts") / name
-    return ImageFont.truetype(str(path), size=size)
+def _font(size: int, bold: bool = False) -> ImageFont.ImageFont:
+    names = ("segoeuib.ttf", "DejaVuSans-Bold.ttf") if bold else ("segoeui.ttf", "DejaVuSans.ttf")
+    for name in names:
+        try:
+            return ImageFont.truetype(name, size=size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
 
 
 def _line_chart(
