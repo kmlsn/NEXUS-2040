@@ -14,9 +14,9 @@
     "test:integration": "pnpm run services:check && pnpm --filter @nexus/api run test:integration",
     "test:e2e": "node scripts/deferred-suite.mjs test:e2e",
     "balance:check": "node scripts/deferred-suite.mjs balance:check",
-    "services:up": "docker compose -f infra/docker-compose.yml up -d --wait",
-    "services:down": "docker compose -f infra/docker-compose.yml down",
-    "services:logs": "docker compose -f infra/docker-compose.yml logs --tail=100",
+    "services:up": "node scripts/compose.mjs up -d --wait",
+    "services:down": "node scripts/compose.mjs down",
+    "services:logs": "node scripts/compose.mjs logs --tail=100",
     "services:check": "node scripts/local-services-check.mjs",
     "plan:check": "node scripts/plan-check.mjs",
     "verify": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run test:integration && pnpm run test:e2e && pnpm run balance:check && pnpm run plan:check"

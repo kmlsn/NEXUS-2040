@@ -41,14 +41,15 @@ if (env.match(/prod|production|password=.*(real|secret)/i)) {
   throw new Error(".env.example must contain only synthetic local development values.");
 }
 
-run("docker", ["compose", "-f", "infra/docker-compose.yml", "config"]);
+const composeArgs = ["compose", ...(existsSync(resolve(root, ".env")) ? ["--env-file", ".env"] : []), "-f", "infra/docker-compose.yml"];
+run("docker", [...composeArgs, "config"]);
 if (configOnly) {
   console.log("PASS: local PostgreSQL/Redis Compose configuration is valid and uses synthetic example settings.");
   process.exit(0);
 }
 
-run("docker", ["compose", "-f", "infra/docker-compose.yml", "exec", "-T", "postgres", "sh", "-ec", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']);
-const redisOutput = run("docker", ["compose", "-f", "infra/docker-compose.yml", "exec", "-T", "redis", "redis-cli", "ping"]);
+run("docker", [...composeArgs, "exec", "-T", "postgres", "sh", "-ec", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']);
+const redisOutput = run("docker", [...composeArgs, "exec", "-T", "redis", "redis-cli", "ping"]);
 if (redisOutput.trim() !== "PONG") throw new Error(`Redis health check returned ${JSON.stringify(redisOutput.trim())}.`);
 
 console.log("PASS: local PostgreSQL and Redis containers are healthy.");
