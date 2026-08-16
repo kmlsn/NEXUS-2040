@@ -1,0 +1,15 @@
+{
+  "formula_version": "balance-1.2",
+  "scale": 10000,
+  "cases": [
+    { "previous": 10000, "shock": 0, "expected": 10000 },
+    { "previous": 8500, "shock": -420, "expected": 8500 },
+    { "previous": 11500, "shock": 420, "expected": 11500 },
+    { "previous": 10000, "shock": -1500, "expected": 8500 },
+    { "previous": 10000, "shock": 1500, "expected": 11500 },
+    { "previous": 11500, "shock": 0, "expected": 11080 },
+    { "previous": 11080, "shock": 0, "expected": 10778 },
+    { "previous": 10000, "shock": 900, "expected": 10900 },
+    { "previous": 10000, "shock": -800, "expected": 9200 }
+  ]
+}

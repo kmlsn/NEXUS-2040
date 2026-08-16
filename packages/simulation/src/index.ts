@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 export * from "./energy.js";
 export * from "./accrual.js";
 export * from "./world.js";
+export * from "./market.js";
 
 const U64_MASK = (1n << 64n) - 1n;
 const U32_RANGE = 2 ** 32;

@@ -1,5 +1,5 @@
 import type { Clock } from "@nexus/contracts";
-import { advanceWorldState, type WorldAdvance, type WorldState } from "@nexus/simulation";
+import { advanceMarketState, advanceWorldState, marketShockForCompletedCycle, type MarketAdvance, type MarketState, type WorldAdvance, type WorldState } from "@nexus/simulation";
 import type { Pool, PoolClient } from "pg";
 
 const POSTGRES_BIGINT_MAX = (1n << 63n) - 1n;
@@ -13,7 +13,17 @@ interface WorldStateRow {
   state_revision: string;
 }
 
-export type WorldCycleOutcome = WorldAdvance;
+interface MarketStateRow {
+  content_version: string;
+  formula_version: string;
+  market_index_basis_points: number;
+  applied_cycles: string;
+  state_revision: string;
+}
+
+export interface WorldCycleOutcome extends WorldAdvance {
+  readonly market: MarketAdvance;
+}
 
 function rowToState(row: WorldStateRow): WorldState {
   return {
@@ -22,6 +32,14 @@ function rowToState(row: WorldStateRow): WorldState {
     masterSeed: BigInt(row.master_seed),
     epochMs: BigInt(row.epoch_ms),
     completedCycles: BigInt(row.completed_cycles),
+    stateRevision: BigInt(row.state_revision),
+  };
+}
+
+function rowToMarketState(row: MarketStateRow): MarketState {
+  return {
+    indexBasisPoints: row.market_index_basis_points,
+    appliedCycles: BigInt(row.applied_cycles),
     stateRevision: BigInt(row.state_revision),
   };
 }
@@ -62,13 +80,25 @@ export class WorldCycleService {
     const result = await client.query<WorldStateRow>("SELECT content_version, formula_version, master_seed, epoch_ms, completed_cycles, state_revision FROM world_state WHERE id = 1 FOR UPDATE");
     const row = result.rows[0];
     if (!row) throw new Error("World state is not initialized.");
-    const outcome = advanceWorldState(rowToState(row), serverNowMs);
+    const worldState = rowToState(row);
+    const outcome = advanceWorldState(worldState, serverNowMs);
     if (outcome.advancedCycles > 0n) {
       await client.query(
         "UPDATE world_state SET completed_cycles = $1, state_revision = $2, updated_at = now() WHERE id = 1",
         [outcome.state.completedCycles.toString(), outcome.state.stateRevision.toString()],
       );
     }
-    return outcome;
+    const marketResult = await client.query<MarketStateRow>("SELECT content_version, formula_version, market_index_basis_points, applied_cycles, state_revision FROM npc_market_state WHERE world_state_id = 1 FOR UPDATE");
+    const marketRow = marketResult.rows[0];
+    if (!marketRow) throw new Error("NPC market state is not initialized.");
+    if (marketRow.content_version !== worldState.contentVersion || marketRow.formula_version !== worldState.formulaVersion) throw new Error("NPC market state does not match world state version.");
+    const market = advanceMarketState(rowToMarketState(marketRow), outcome.state.completedCycles, marketShockForCompletedCycle);
+    if (market.advancedCycles > 0n) {
+      await client.query(
+        "UPDATE npc_market_state SET market_index_basis_points = $1, applied_cycles = $2, state_revision = $3, updated_at = now() WHERE world_state_id = 1",
+        [market.state.indexBasisPoints, market.state.appliedCycles.toString(), market.state.stateRevision.toString()],
+      );
+    }
+    return { ...outcome, market };
   }
 }

@@ -39,6 +39,8 @@ try {
   ];
   const actualNpcStates = npcStates.rows.map((row) => [row.organization_id, row.world_state_id, row.content_version, row.formula_version, row.doctrine_id, row.capacity_readiness, row.state_revision]);
   if (JSON.stringify(actualNpcStates) !== JSON.stringify(expectedNpcStates)) throw new Error("NPC organization baseline state did not match D-028.");
+  const marketState = await worldClient.query<{ world_state_id: number; content_version: string; formula_version: string; market_index_basis_points: number; applied_cycles: string; state_revision: string }>("SELECT world_state_id, content_version, formula_version, market_index_basis_points, applied_cycles, state_revision FROM npc_market_state");
+  if (JSON.stringify(marketState.rows) !== JSON.stringify([{ world_state_id: 1, content_version: "asteria-baseline-0.2", formula_version: "balance-1.2", market_index_basis_points: 10000, applied_cycles: "0", state_revision: "1" }])) throw new Error("NPC market state was not deterministically initialized.");
   for (const sql of [
     "UPDATE npc_organization_state SET capacity_readiness = 101 WHERE organization_id = 'free_mesh'",
     "UPDATE npc_organization_state SET doctrine_id = 'player_doctrine' WHERE organization_id = 'free_mesh'",
@@ -48,6 +50,15 @@ try {
     let rejected = false;
     try { await worldClient.query(sql); } catch { rejected = true; }
     if (!rejected) throw new Error(`NPC organization constraint accepted: ${sql}`);
+  }
+  for (const sql of [
+    "UPDATE npc_market_state SET market_index_basis_points = 8499",
+    "UPDATE npc_market_state SET formula_version = 'balance-1.3'",
+    "UPDATE npc_market_state SET applied_cycles = 1, state_revision = 2",
+  ]) {
+    let rejected = false;
+    try { await worldClient.query(sql); } catch { rejected = true; }
+    if (!rejected) throw new Error(`NPC market constraint accepted: ${sql}`);
   }
   const relationshipProfile = randomUUID();
   await worldClient.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [relationshipProfile]);
@@ -60,6 +71,8 @@ try {
   let duplicateRelationshipRejected = false;
   try { await worldClient.query("INSERT INTO profile_npc_relationships(profile_id, organization_id, relationship_tenths) VALUES($1, 'free_mesh', 0)", [relationshipProfile]); } catch { duplicateRelationshipRejected = true; }
   if (!duplicateRelationshipRejected) throw new Error("Duplicate NPC relationship was accepted.");
+  const marketRollback = await rollbackLatestMigration(testUrl);
+  if (marketRollback !== "014_npc_market_state") throw new Error("Expected pristine NPC market migration rollback.");
   let npcRollbackRejected = false;
   try { await rollbackLatestMigration(testUrl); } catch { npcRollbackRejected = true; }
   if (!npcRollbackRejected) throw new Error("NPC organization rollback with persisted relationship was accepted.");
@@ -68,6 +81,8 @@ try {
   const npcRollback = await rollbackLatestMigration(testUrl);
   if (npcRollback !== "013_npc_organization_state") throw new Error("Expected pristine NPC organization migration rollback.");
   await applyMigrations(testUrl);
+  const marketRollbackBeforeNpcStateChange = await rollbackLatestMigration(testUrl);
+  if (marketRollbackBeforeNpcStateChange !== "014_npc_market_state") throw new Error("Expected NPC market migration to be removed before NPC state rollback coverage.");
   await worldClient.query("UPDATE npc_organization_state SET capacity_readiness = 56, state_revision = 2 WHERE organization_id = 'free_mesh'");
   let changedNpcRollbackRejected = false;
   try { await rollbackLatestMigration(testUrl); } catch { changedNpcRollbackRejected = true; }
@@ -91,12 +106,16 @@ try {
   }
   await worldClient.end();
   for (let index = 0; index < 3; index += 1) {
+    const marketRollback = await rollbackLatestMigration(testUrl);
+    if (marketRollback !== "014_npc_market_state") throw new Error("Expected NPC market migration rollback before world configuration coverage.");
     const npcRollback = await rollbackLatestMigration(testUrl);
     if (npcRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration rollback before world configuration coverage.");
     const rollback = await rollbackLatestMigration(testUrl);
     if (rollback !== "012_world_state_immutability") throw new Error("Expected pristine world-state configuration migration rollback.");
     await applyMigrations(testUrl);
   }
+  const finalMarketConfigurationRollback = await rollbackLatestMigration(testUrl);
+  if (finalMarketConfigurationRollback !== "014_npc_market_state") throw new Error("Expected NPC market migration to be removed before final configuration rollback.");
   const finalNpcConfigurationRollback = await rollbackLatestMigration(testUrl);
   if (finalNpcConfigurationRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration to be removed before final configuration rollback.");
   const finalConfigurationRollback = await rollbackLatestMigration(testUrl);
@@ -210,6 +229,8 @@ try {
   if (!downRejected) throw new Error("Rollback with persisted ledger data was accepted.");
   await applyMigrations(testUrl);
   await client.query("UPDATE world_state SET completed_cycles = 1, state_revision = 2 WHERE id = 1");
+  const marketRollbackBeforeWorld = await rollbackLatestMigration(testUrl);
+  if (marketRollbackBeforeWorld !== "014_npc_market_state") throw new Error("Expected NPC market migration rollback before advanced world rollback coverage.");
   let persistedNpcStateRollbackRejected = false;
   try { await rollbackLatestMigration(testUrl); } catch { persistedNpcStateRollbackRejected = true; }
   if (!persistedNpcStateRollbackRejected) throw new Error("NPC organization rollback with backfilled profile state was accepted.");
@@ -222,6 +243,14 @@ try {
   let backwardWorldStateRejected = false;
   try { await client.query("UPDATE world_state SET completed_cycles = 0, state_revision = 1 WHERE id = 1"); } catch { backwardWorldStateRejected = true; }
   if (!backwardWorldStateRejected) throw new Error("World state was allowed to move backwards.");
+  await applyMigrations(testUrl);
+  let marketDeleteRejected = false;
+  try { await client.query("DELETE FROM npc_market_state WHERE world_state_id = 1"); } catch { marketDeleteRejected = true; }
+  if (!marketDeleteRejected) throw new Error("NPC market singleton deletion was accepted.");
+  await client.query("UPDATE npc_market_state SET applied_cycles = 1, state_revision = 2 WHERE world_state_id = 1");
+  let advancedMarketRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { advancedMarketRollbackRejected = true; }
+  if (!advancedMarketRollbackRejected) throw new Error("NPC market rollback with advanced state was accepted.");
   await client.end();
   console.log("PASS: migrations, version pinning, sequential/concurrent idempotency, immutable ledger, and rollback guard verified.");
 } finally {
