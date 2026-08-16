@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { Client } from "pg";
+import { Client, Pool } from "pg";
 import { parseMicroUnits } from "../src/ledger/micro-units";
 import { applyMigrations, rollbackLatestMigration } from "../src/migrations/runner";
+import { ensureProfileNpcRelationships } from "../src/npc/organization-service";
 
 const adminUrl = process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/postgres";
 const testDb = "nexus_migration_test";
@@ -20,6 +21,62 @@ try {
   await worldClient.connect();
   const singleton = await worldClient.query<{ count: string }>("SELECT count(*) FROM world_state");
   if (singleton.rows[0]?.count !== "1") throw new Error("World state singleton was not initialized.");
+  const npcCount = await worldClient.query<{ count: string }>("SELECT count(*) FROM npc_organization_state");
+  if (npcCount.rows[0]?.count !== "3") throw new Error("NPC organization state was not deterministically initialized.");
+  const npcStates = await worldClient.query<{
+    organization_id: string;
+    world_state_id: number;
+    content_version: string;
+    formula_version: string;
+    doctrine_id: string;
+    capacity_readiness: number;
+    state_revision: string;
+  }>("SELECT organization_id, world_state_id, content_version, formula_version, doctrine_id, capacity_readiness, state_revision FROM npc_organization_state ORDER BY organization_id");
+  const expectedNpcStates = [
+    ["asteria_civic_grid", 1, "asteria-baseline-0.2", "balance-1.2", "continuity", 60, "1"],
+    ["free_mesh", 1, "asteria-baseline-0.2", "balance-1.2", "distribute", 55, "1"],
+    ["nexilune_industrial", 1, "asteria-baseline-0.2", "balance-1.2", "centralize", 65, "1"],
+  ];
+  const actualNpcStates = npcStates.rows.map((row) => [row.organization_id, row.world_state_id, row.content_version, row.formula_version, row.doctrine_id, row.capacity_readiness, row.state_revision]);
+  if (JSON.stringify(actualNpcStates) !== JSON.stringify(expectedNpcStates)) throw new Error("NPC organization baseline state did not match D-028.");
+  for (const sql of [
+    "UPDATE npc_organization_state SET capacity_readiness = 101 WHERE organization_id = 'free_mesh'",
+    "UPDATE npc_organization_state SET doctrine_id = 'player_doctrine' WHERE organization_id = 'free_mesh'",
+    "UPDATE npc_organization_state SET formula_version = 'balance-1.3' WHERE organization_id = 'free_mesh'",
+    "UPDATE npc_organization_state SET capacity_readiness = 56 WHERE organization_id = 'free_mesh'",
+  ]) {
+    let rejected = false;
+    try { await worldClient.query(sql); } catch { rejected = true; }
+    if (!rejected) throw new Error(`NPC organization constraint accepted: ${sql}`);
+  }
+  const relationshipProfile = randomUUID();
+  await worldClient.query("INSERT INTO profiles(id, content_version, formula_version) VALUES($1, 'asteria-baseline-0.2', 'balance-1.2')", [relationshipProfile]);
+  const bootstrapRelationshipCount = await worldClient.query<{ count: string }>("SELECT count(*) FROM profile_npc_relationships WHERE profile_id = $1 AND relationship_tenths = 0", [relationshipProfile]);
+  if (bootstrapRelationshipCount.rows[0]?.count !== "3") throw new Error("Direct profile insertion did not bootstrap neutral NPC relationships.");
+  const relationshipPools = [new Pool({ connectionString: testUrl }), new Pool({ connectionString: testUrl })];
+  try { await Promise.all(relationshipPools.map((pool) => ensureProfileNpcRelationships(pool, relationshipProfile))); } finally { await Promise.all(relationshipPools.map((pool) => pool.end())); }
+  const relationshipCount = await worldClient.query<{ count: string }>("SELECT count(*) FROM profile_npc_relationships WHERE profile_id = $1 AND relationship_tenths = 0", [relationshipProfile]);
+  if (relationshipCount.rows[0]?.count !== "3") throw new Error("Concurrent NPC relationship initialization was not idempotent.");
+  let duplicateRelationshipRejected = false;
+  try { await worldClient.query("INSERT INTO profile_npc_relationships(profile_id, organization_id, relationship_tenths) VALUES($1, 'free_mesh', 0)", [relationshipProfile]); } catch { duplicateRelationshipRejected = true; }
+  if (!duplicateRelationshipRejected) throw new Error("Duplicate NPC relationship was accepted.");
+  let npcRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { npcRollbackRejected = true; }
+  if (!npcRollbackRejected) throw new Error("NPC organization rollback with persisted relationship was accepted.");
+  await worldClient.query("DELETE FROM profile_npc_relationships WHERE profile_id = $1", [relationshipProfile]);
+  await worldClient.query("DELETE FROM profiles WHERE id = $1", [relationshipProfile]);
+  const npcRollback = await rollbackLatestMigration(testUrl);
+  if (npcRollback !== "013_npc_organization_state") throw new Error("Expected pristine NPC organization migration rollback.");
+  await applyMigrations(testUrl);
+  await worldClient.query("UPDATE npc_organization_state SET capacity_readiness = 56, state_revision = 2 WHERE organization_id = 'free_mesh'");
+  let changedNpcRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { changedNpcRollbackRejected = true; }
+  if (!changedNpcRollbackRejected) throw new Error("NPC organization rollback with changed canonical state was accepted.");
+  await worldClient.query("DELETE FROM npc_organization_state WHERE organization_id = 'free_mesh'");
+  await worldClient.query("INSERT INTO npc_organization_state(organization_id, world_state_id, content_version, formula_version, doctrine_id, capacity_readiness, state_revision) VALUES('free_mesh', 1, 'asteria-baseline-0.2', 'balance-1.2', 'distribute', 55, 1)");
+  const finalNpcRollback = await rollbackLatestMigration(testUrl);
+  if (finalNpcRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration to be removed before world rollback coverage.");
+  await applyMigrations(testUrl);
   for (const sql of [
     "INSERT INTO world_state(id, content_version, formula_version, master_seed, epoch_ms) VALUES(2, 'asteria-baseline-0.2', 'balance-1.2', 1, 0)",
     "UPDATE world_state SET master_seed = 20260810 WHERE id = 1",
@@ -34,10 +91,14 @@ try {
   }
   await worldClient.end();
   for (let index = 0; index < 3; index += 1) {
+    const npcRollback = await rollbackLatestMigration(testUrl);
+    if (npcRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration rollback before world configuration coverage.");
     const rollback = await rollbackLatestMigration(testUrl);
     if (rollback !== "012_world_state_immutability") throw new Error("Expected pristine world-state configuration migration rollback.");
     await applyMigrations(testUrl);
   }
+  const finalNpcConfigurationRollback = await rollbackLatestMigration(testUrl);
+  if (finalNpcConfigurationRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration to be removed before final configuration rollback.");
   const finalConfigurationRollback = await rollbackLatestMigration(testUrl);
   if (finalConfigurationRollback !== "012_world_state_immutability") throw new Error("Expected world-state configuration migration to be removed before state rollback coverage.");
   const finalWorldRollback = await rollbackLatestMigration(testUrl);
@@ -149,6 +210,12 @@ try {
   if (!downRejected) throw new Error("Rollback with persisted ledger data was accepted.");
   await applyMigrations(testUrl);
   await client.query("UPDATE world_state SET completed_cycles = 1, state_revision = 2 WHERE id = 1");
+  let persistedNpcStateRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { persistedNpcStateRollbackRejected = true; }
+  if (!persistedNpcStateRollbackRejected) throw new Error("NPC organization rollback with backfilled profile state was accepted.");
+  await client.query("DELETE FROM profile_npc_relationships");
+  const npcRollbackBeforeWorld = await rollbackLatestMigration(testUrl);
+  if (npcRollbackBeforeWorld !== "013_npc_organization_state") throw new Error("Expected NPC organization migration rollback before advanced world rollback coverage.");
   let advancedWorldRollbackRejected = false;
   try { await rollbackLatestMigration(testUrl); } catch { advancedWorldRollbackRejected = true; }
   if (!advancedWorldRollbackRejected) throw new Error("Advanced world-state configuration rollback was accepted.");
