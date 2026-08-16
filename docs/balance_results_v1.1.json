@@ -20,7 +20,7 @@
     "facility_energy_demand": "base_demand * 1.18^(level-1)",
     "energy_efficiency": "allocation / demand; allocation ordered by priority then facility_id",
     "activity_bonus": "min(0.20, 0.08*ln(1+operations_per_day))",
-    "market_index": "clamp(0.85, 1.15, 1 + 0.72*(previous-1) + shock)",
+    "market_index": "roundHalfAway(clamp(8500,11500,10000+0.72*(previous_bp-10000)+shock_bp))/10000 per six-hour cycle",
     "contract_probability": "0.10 + 0.80*sigmoid((player_score-best_npc_score)/9)",
     "offer_score": "0.45*preparedness + 0.25*reputation + 0.20*urgency_fit + 0.10*price_score",
     "bandwidth": "clamp(12,40,10+2*data_center_level+floor(research/5))",
@@ -1175,484 +1175,2404 @@
   ],
   "market_series": [
     {
-      "day": 1,
-      "market_index": 0.9882
+      "cycle": 1,
+      "day": 0.25,
+      "market_index": 1.0
     },
     {
-      "day": 2,
-      "market_index": 0.9461
+      "cycle": 2,
+      "day": 0.5,
+      "market_index": 1.0
     },
     {
-      "day": 3,
-      "market_index": 1.0237
+      "cycle": 3,
+      "day": 0.75,
+      "market_index": 1.0
     },
     {
-      "day": 4,
-      "market_index": 1.051
+      "cycle": 4,
+      "day": 1.0,
+      "market_index": 1.0
     },
     {
-      "day": 5,
-      "market_index": 1.0806
+      "cycle": 5,
+      "day": 1.25,
+      "market_index": 1.0
     },
     {
-      "day": 6,
-      "market_index": 1.0611
+      "cycle": 6,
+      "day": 1.5,
+      "market_index": 1.0
     },
     {
-      "day": 7,
-      "market_index": 1.0697
+      "cycle": 7,
+      "day": 1.75,
+      "market_index": 1.0
     },
     {
-      "day": 8,
-      "market_index": 1.0324
+      "cycle": 8,
+      "day": 2.0,
+      "market_index": 1.0
     },
     {
-      "day": 9,
-      "market_index": 1.0556
+      "cycle": 9,
+      "day": 2.25,
+      "market_index": 1.0
     },
     {
-      "day": 10,
-      "market_index": 1.0312
+      "cycle": 10,
+      "day": 2.5,
+      "market_index": 1.0
     },
     {
-      "day": 11,
-      "market_index": 1.011
+      "cycle": 11,
+      "day": 2.75,
+      "market_index": 1.0
     },
     {
-      "day": 12,
-      "market_index": 1.0343
+      "cycle": 12,
+      "day": 3.0,
+      "market_index": 1.0
     },
     {
-      "day": 13,
-      "market_index": 1.0338
+      "cycle": 13,
+      "day": 3.25,
+      "market_index": 1.0
     },
     {
-      "day": 14,
-      "market_index": 1.0158
+      "cycle": 14,
+      "day": 3.5,
+      "market_index": 1.0
     },
     {
-      "day": 15,
-      "market_index": 1.0329
+      "cycle": 15,
+      "day": 3.75,
+      "market_index": 1.0
     },
     {
-      "day": 16,
-      "market_index": 1.0487
+      "cycle": 16,
+      "day": 4.0,
+      "market_index": 1.0
     },
     {
-      "day": 17,
-      "market_index": 1.0357
+      "cycle": 17,
+      "day": 4.25,
+      "market_index": 1.0
     },
     {
-      "day": 18,
-      "market_index": 1.0431
+      "cycle": 18,
+      "day": 4.5,
+      "market_index": 1.0
     },
     {
-      "day": 19,
-      "market_index": 0.9666
+      "cycle": 19,
+      "day": 4.75,
+      "market_index": 1.0
     },
     {
-      "day": 20,
-      "market_index": 0.9856
+      "cycle": 20,
+      "day": 5.0,
+      "market_index": 1.0
     },
     {
-      "day": 21,
-      "market_index": 0.9465
+      "cycle": 21,
+      "day": 5.25,
+      "market_index": 1.0
     },
     {
-      "day": 22,
-      "market_index": 0.9415
+      "cycle": 22,
+      "day": 5.5,
+      "market_index": 1.0
     },
     {
-      "day": 23,
-      "market_index": 0.9331
+      "cycle": 23,
+      "day": 5.75,
+      "market_index": 1.0
     },
     {
-      "day": 24,
-      "market_index": 0.9244
+      "cycle": 24,
+      "day": 6.0,
+      "market_index": 1.0
     },
     {
-      "day": 25,
-      "market_index": 0.9309
+      "cycle": 25,
+      "day": 6.25,
+      "market_index": 1.0
     },
     {
-      "day": 26,
-      "market_index": 0.9303
+      "cycle": 26,
+      "day": 6.5,
+      "market_index": 1.0
     },
     {
-      "day": 27,
-      "market_index": 0.9814
+      "cycle": 27,
+      "day": 6.75,
+      "market_index": 1.0
     },
     {
-      "day": 28,
-      "market_index": 1.0748
+      "cycle": 28,
+      "day": 7.0,
+      "market_index": 1.0
     },
     {
-      "day": 29,
-      "market_index": 1.1237
+      "cycle": 29,
+      "day": 7.25,
+      "market_index": 1.0
     },
     {
-      "day": 30,
-      "market_index": 1.15
+      "cycle": 30,
+      "day": 7.5,
+      "market_index": 1.0
     },
     {
-      "day": 31,
-      "market_index": 1.1082
+      "cycle": 31,
+      "day": 7.75,
+      "market_index": 1.0
     },
     {
-      "day": 32,
-      "market_index": 1.0344
+      "cycle": 32,
+      "day": 8.0,
+      "market_index": 1.0
     },
     {
-      "day": 33,
-      "market_index": 0.9567
+      "cycle": 33,
+      "day": 8.25,
+      "market_index": 1.0
     },
     {
-      "day": 34,
-      "market_index": 0.945
+      "cycle": 34,
+      "day": 8.5,
+      "market_index": 1.0
     },
     {
-      "day": 35,
-      "market_index": 0.9723
+      "cycle": 35,
+      "day": 8.75,
+      "market_index": 1.0
     },
     {
-      "day": 36,
-      "market_index": 0.9423
+      "cycle": 36,
+      "day": 9.0,
+      "market_index": 1.0
     },
     {
-      "day": 37,
-      "market_index": 0.9218
+      "cycle": 37,
+      "day": 9.25,
+      "market_index": 1.0
     },
     {
-      "day": 38,
-      "market_index": 0.998
+      "cycle": 38,
+      "day": 9.5,
+      "market_index": 1.0
     },
     {
-      "day": 39,
-      "market_index": 0.9603
+      "cycle": 39,
+      "day": 9.75,
+      "market_index": 1.0
     },
     {
-      "day": 40,
-      "market_index": 0.9074
+      "cycle": 40,
+      "day": 10.0,
+      "market_index": 1.0
     },
     {
-      "day": 41,
-      "market_index": 0.9503
+      "cycle": 41,
+      "day": 10.25,
+      "market_index": 1.0
     },
     {
-      "day": 42,
-      "market_index": 0.9755
+      "cycle": 42,
+      "day": 10.5,
+      "market_index": 1.0
     },
     {
-      "day": 43,
-      "market_index": 0.9949
+      "cycle": 43,
+      "day": 10.75,
+      "market_index": 1.0
     },
     {
-      "day": 44,
-      "market_index": 0.9902
+      "cycle": 44,
+      "day": 11.0,
+      "market_index": 1.0
     },
     {
-      "day": 45,
-      "market_index": 0.9574
+      "cycle": 45,
+      "day": 11.25,
+      "market_index": 1.0
     },
     {
-      "day": 46,
+      "cycle": 46,
+      "day": 11.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 47,
+      "day": 11.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 48,
+      "day": 12.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 49,
+      "day": 12.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 50,
+      "day": 12.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 51,
+      "day": 12.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 52,
+      "day": 13.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 53,
+      "day": 13.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 54,
+      "day": 13.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 55,
+      "day": 13.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 56,
+      "day": 14.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 57,
+      "day": 14.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 58,
+      "day": 14.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 59,
+      "day": 14.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 60,
+      "day": 15.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 61,
+      "day": 15.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 62,
+      "day": 15.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 63,
+      "day": 15.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 64,
+      "day": 16.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 65,
+      "day": 16.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 66,
+      "day": 16.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 67,
+      "day": 16.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 68,
+      "day": 17.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 69,
+      "day": 17.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 70,
+      "day": 17.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 71,
+      "day": 17.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 72,
+      "day": 18.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 73,
+      "day": 18.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 74,
+      "day": 18.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 75,
+      "day": 18.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 76,
+      "day": 19.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 77,
+      "day": 19.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 78,
+      "day": 19.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 79,
+      "day": 19.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 80,
+      "day": 20.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 81,
+      "day": 20.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 82,
+      "day": 20.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 83,
+      "day": 20.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 84,
+      "day": 21.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 85,
+      "day": 21.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 86,
+      "day": 21.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 87,
+      "day": 21.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 88,
+      "day": 22.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 89,
+      "day": 22.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 90,
+      "day": 22.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 91,
+      "day": 22.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 92,
+      "day": 23.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 93,
+      "day": 23.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 94,
+      "day": 23.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 95,
+      "day": 23.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 96,
+      "day": 24.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 97,
+      "day": 24.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 98,
+      "day": 24.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 99,
+      "day": 24.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 100,
+      "day": 25.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 101,
+      "day": 25.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 102,
+      "day": 25.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 103,
+      "day": 25.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 104,
+      "day": 26.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 105,
+      "day": 26.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 106,
+      "day": 26.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 107,
+      "day": 26.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 108,
+      "day": 27.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 109,
+      "day": 27.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 110,
+      "day": 27.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 111,
+      "day": 27.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 112,
+      "day": 28.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 113,
+      "day": 28.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 114,
+      "day": 28.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 115,
+      "day": 28.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 116,
+      "day": 29.0,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 117,
+      "day": 29.25,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 118,
+      "day": 29.5,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 119,
+      "day": 29.75,
+      "market_index": 1.0
+    },
+    {
+      "cycle": 120,
+      "day": 30.0,
+      "market_index": 1.09
+    },
+    {
+      "cycle": 121,
+      "day": 30.25,
+      "market_index": 1.0648
+    },
+    {
+      "cycle": 122,
+      "day": 30.5,
+      "market_index": 1.0467
+    },
+    {
+      "cycle": 123,
+      "day": 30.75,
+      "market_index": 1.0336
+    },
+    {
+      "cycle": 124,
+      "day": 31.0,
+      "market_index": 1.0242
+    },
+    {
+      "cycle": 125,
+      "day": 31.25,
+      "market_index": 1.0174
+    },
+    {
+      "cycle": 126,
+      "day": 31.5,
+      "market_index": 1.0125
+    },
+    {
+      "cycle": 127,
+      "day": 31.75,
+      "market_index": 1.009
+    },
+    {
+      "cycle": 128,
+      "day": 32.0,
       "market_index": 1.0065
     },
     {
-      "day": 47,
-      "market_index": 0.9397
+      "cycle": 129,
+      "day": 32.25,
+      "market_index": 1.0047
     },
     {
-      "day": 48,
-      "market_index": 0.9741
+      "cycle": 130,
+      "day": 32.5,
+      "market_index": 1.0034
     },
     {
-      "day": 49,
-      "market_index": 0.9771
+      "cycle": 131,
+      "day": 32.75,
+      "market_index": 1.0024
     },
     {
-      "day": 50,
-      "market_index": 0.9687
+      "cycle": 132,
+      "day": 33.0,
+      "market_index": 1.0017
     },
     {
-      "day": 51,
-      "market_index": 0.9529
+      "cycle": 133,
+      "day": 33.25,
+      "market_index": 1.0012
     },
     {
-      "day": 52,
-      "market_index": 0.935
+      "cycle": 134,
+      "day": 33.5,
+      "market_index": 1.0009
     },
     {
-      "day": 53,
-      "market_index": 0.9548
+      "cycle": 135,
+      "day": 33.75,
+      "market_index": 1.0006
     },
     {
-      "day": 54,
-      "market_index": 1.0368
+      "cycle": 136,
+      "day": 34.0,
+      "market_index": 1.0004
     },
     {
-      "day": 55,
-      "market_index": 1.0447
+      "cycle": 137,
+      "day": 34.25,
+      "market_index": 1.0003
     },
     {
-      "day": 56,
-      "market_index": 1.0695
+      "cycle": 138,
+      "day": 34.5,
+      "market_index": 1.0002
     },
     {
-      "day": 57,
-      "market_index": 1.079
+      "cycle": 139,
+      "day": 34.75,
+      "market_index": 1.0001
     },
     {
-      "day": 58,
-      "market_index": 1.1311
+      "cycle": 140,
+      "day": 35.0,
+      "market_index": 1.0001
     },
     {
-      "day": 59,
-      "market_index": 1.0942
+      "cycle": 141,
+      "day": 35.25,
+      "market_index": 1.0001
     },
     {
-      "day": 60,
-      "market_index": 1.0679
+      "cycle": 142,
+      "day": 35.5,
+      "market_index": 1.0001
     },
     {
-      "day": 61,
-      "market_index": 0.9897
+      "cycle": 143,
+      "day": 35.75,
+      "market_index": 1.0001
     },
     {
-      "day": 62,
-      "market_index": 1.0626
+      "cycle": 144,
+      "day": 36.0,
+      "market_index": 1.0001
     },
     {
-      "day": 63,
-      "market_index": 0.973
+      "cycle": 145,
+      "day": 36.25,
+      "market_index": 1.0001
     },
     {
-      "day": 64,
-      "market_index": 0.998
+      "cycle": 146,
+      "day": 36.5,
+      "market_index": 1.0001
     },
     {
-      "day": 65,
-      "market_index": 0.9665
+      "cycle": 147,
+      "day": 36.75,
+      "market_index": 1.0001
     },
     {
-      "day": 66,
-      "market_index": 0.9498
+      "cycle": 148,
+      "day": 37.0,
+      "market_index": 1.0001
     },
     {
-      "day": 67,
-      "market_index": 0.9678
+      "cycle": 149,
+      "day": 37.25,
+      "market_index": 1.0001
     },
     {
-      "day": 68,
-      "market_index": 0.8972
+      "cycle": 150,
+      "day": 37.5,
+      "market_index": 1.0001
     },
     {
-      "day": 69,
-      "market_index": 0.958
+      "cycle": 151,
+      "day": 37.75,
+      "market_index": 1.0001
     },
     {
-      "day": 70,
-      "market_index": 0.998
+      "cycle": 152,
+      "day": 38.0,
+      "market_index": 1.0001
     },
     {
-      "day": 71,
-      "market_index": 1.0201
+      "cycle": 153,
+      "day": 38.25,
+      "market_index": 1.0001
     },
     {
-      "day": 72,
-      "market_index": 0.9949
+      "cycle": 154,
+      "day": 38.5,
+      "market_index": 1.0001
     },
     {
-      "day": 73,
-      "market_index": 0.9762
+      "cycle": 155,
+      "day": 38.75,
+      "market_index": 1.0001
     },
     {
-      "day": 74,
-      "market_index": 1.0134
+      "cycle": 156,
+      "day": 39.0,
+      "market_index": 1.0001
     },
     {
-      "day": 75,
-      "market_index": 0.9349
+      "cycle": 157,
+      "day": 39.25,
+      "market_index": 1.0001
     },
     {
-      "day": 76,
-      "market_index": 0.9263
+      "cycle": 158,
+      "day": 39.5,
+      "market_index": 1.0001
     },
     {
-      "day": 77,
-      "market_index": 1.0147
+      "cycle": 159,
+      "day": 39.75,
+      "market_index": 1.0001
     },
     {
-      "day": 78,
-      "market_index": 1.0378
+      "cycle": 160,
+      "day": 40.0,
+      "market_index": 1.0001
     },
     {
-      "day": 79,
-      "market_index": 1.0022
+      "cycle": 161,
+      "day": 40.25,
+      "market_index": 1.0001
     },
     {
-      "day": 80,
-      "market_index": 1.0162
+      "cycle": 162,
+      "day": 40.5,
+      "market_index": 1.0001
     },
     {
-      "day": 81,
-      "market_index": 1.038
+      "cycle": 163,
+      "day": 40.75,
+      "market_index": 1.0001
     },
     {
-      "day": 82,
-      "market_index": 0.978
+      "cycle": 164,
+      "day": 41.0,
+      "market_index": 1.0001
     },
     {
-      "day": 83,
-      "market_index": 0.9989
+      "cycle": 165,
+      "day": 41.25,
+      "market_index": 1.0001
     },
     {
-      "day": 84,
-      "market_index": 1.025
+      "cycle": 166,
+      "day": 41.5,
+      "market_index": 1.0001
     },
     {
-      "day": 85,
-      "market_index": 1.0247
+      "cycle": 167,
+      "day": 41.75,
+      "market_index": 1.0001
     },
     {
-      "day": 86,
-      "market_index": 0.9887
+      "cycle": 168,
+      "day": 42.0,
+      "market_index": 1.0001
     },
     {
-      "day": 87,
-      "market_index": 0.9798
+      "cycle": 169,
+      "day": 42.25,
+      "market_index": 1.0001
     },
     {
-      "day": 88,
-      "market_index": 0.9626
+      "cycle": 170,
+      "day": 42.5,
+      "market_index": 1.0001
     },
     {
-      "day": 89,
-      "market_index": 1.0226
+      "cycle": 171,
+      "day": 42.75,
+      "market_index": 1.0001
     },
     {
-      "day": 90,
-      "market_index": 0.9657
+      "cycle": 172,
+      "day": 43.0,
+      "market_index": 1.0001
     },
     {
-      "day": 91,
-      "market_index": 1.022
+      "cycle": 173,
+      "day": 43.25,
+      "market_index": 1.0001
     },
     {
-      "day": 92,
-      "market_index": 1.0498
+      "cycle": 174,
+      "day": 43.5,
+      "market_index": 1.0001
     },
     {
-      "day": 93,
-      "market_index": 1.0789
+      "cycle": 175,
+      "day": 43.75,
+      "market_index": 1.0001
     },
     {
-      "day": 94,
-      "market_index": 1.0272
+      "cycle": 176,
+      "day": 44.0,
+      "market_index": 1.0001
     },
     {
-      "day": 95,
-      "market_index": 1.0416
+      "cycle": 177,
+      "day": 44.25,
+      "market_index": 1.0001
     },
     {
-      "day": 96,
-      "market_index": 1.0696
+      "cycle": 178,
+      "day": 44.5,
+      "market_index": 1.0001
     },
     {
-      "day": 97,
-      "market_index": 1.0657
+      "cycle": 179,
+      "day": 44.75,
+      "market_index": 1.0001
     },
     {
-      "day": 98,
-      "market_index": 1.1246
+      "cycle": 180,
+      "day": 45.0,
+      "market_index": 1.0001
     },
     {
-      "day": 99,
-      "market_index": 1.002
+      "cycle": 181,
+      "day": 45.25,
+      "market_index": 1.0001
     },
     {
-      "day": 100,
-      "market_index": 1.0101
+      "cycle": 182,
+      "day": 45.5,
+      "market_index": 1.0001
     },
     {
-      "day": 101,
-      "market_index": 1.0118
+      "cycle": 183,
+      "day": 45.75,
+      "market_index": 1.0001
     },
     {
-      "day": 102,
-      "market_index": 0.9946
+      "cycle": 184,
+      "day": 46.0,
+      "market_index": 1.0001
     },
     {
-      "day": 103,
-      "market_index": 1.0516
+      "cycle": 185,
+      "day": 46.25,
+      "market_index": 1.0001
     },
     {
-      "day": 104,
-      "market_index": 1.0468
+      "cycle": 186,
+      "day": 46.5,
+      "market_index": 1.0001
     },
     {
-      "day": 105,
-      "market_index": 1.0486
+      "cycle": 187,
+      "day": 46.75,
+      "market_index": 1.0001
     },
     {
-      "day": 106,
-      "market_index": 1.1054
+      "cycle": 188,
+      "day": 47.0,
+      "market_index": 1.0001
     },
     {
-      "day": 107,
-      "market_index": 1.0495
+      "cycle": 189,
+      "day": 47.25,
+      "market_index": 1.0001
     },
     {
-      "day": 108,
-      "market_index": 1.0214
+      "cycle": 190,
+      "day": 47.5,
+      "market_index": 1.0001
     },
     {
-      "day": 109,
-      "market_index": 1.0219
+      "cycle": 191,
+      "day": 47.75,
+      "market_index": 1.0001
     },
     {
-      "day": 110,
-      "market_index": 0.9673
+      "cycle": 192,
+      "day": 48.0,
+      "market_index": 1.0001
     },
     {
-      "day": 111,
-      "market_index": 0.9758
+      "cycle": 193,
+      "day": 48.25,
+      "market_index": 1.0001
     },
     {
-      "day": 112,
-      "market_index": 1.0157
+      "cycle": 194,
+      "day": 48.5,
+      "market_index": 1.0001
     },
     {
-      "day": 113,
-      "market_index": 0.9632
+      "cycle": 195,
+      "day": 48.75,
+      "market_index": 1.0001
     },
     {
-      "day": 114,
-      "market_index": 0.9502
+      "cycle": 196,
+      "day": 49.0,
+      "market_index": 1.0001
     },
     {
-      "day": 115,
-      "market_index": 0.9754
+      "cycle": 197,
+      "day": 49.25,
+      "market_index": 1.0001
     },
     {
-      "day": 116,
-      "market_index": 0.9357
+      "cycle": 198,
+      "day": 49.5,
+      "market_index": 1.0001
     },
     {
-      "day": 117,
-      "market_index": 0.9243
+      "cycle": 199,
+      "day": 49.75,
+      "market_index": 1.0001
     },
     {
-      "day": 118,
-      "market_index": 0.9403
+      "cycle": 200,
+      "day": 50.0,
+      "market_index": 1.0001
     },
     {
-      "day": 119,
-      "market_index": 0.9768
+      "cycle": 201,
+      "day": 50.25,
+      "market_index": 1.0001
     },
     {
-      "day": 120,
-      "market_index": 0.9716
+      "cycle": 202,
+      "day": 50.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 203,
+      "day": 50.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 204,
+      "day": 51.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 205,
+      "day": 51.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 206,
+      "day": 51.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 207,
+      "day": 51.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 208,
+      "day": 52.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 209,
+      "day": 52.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 210,
+      "day": 52.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 211,
+      "day": 52.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 212,
+      "day": 53.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 213,
+      "day": 53.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 214,
+      "day": 53.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 215,
+      "day": 53.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 216,
+      "day": 54.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 217,
+      "day": 54.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 218,
+      "day": 54.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 219,
+      "day": 54.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 220,
+      "day": 55.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 221,
+      "day": 55.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 222,
+      "day": 55.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 223,
+      "day": 55.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 224,
+      "day": 56.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 225,
+      "day": 56.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 226,
+      "day": 56.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 227,
+      "day": 56.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 228,
+      "day": 57.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 229,
+      "day": 57.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 230,
+      "day": 57.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 231,
+      "day": 57.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 232,
+      "day": 58.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 233,
+      "day": 58.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 234,
+      "day": 58.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 235,
+      "day": 58.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 236,
+      "day": 59.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 237,
+      "day": 59.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 238,
+      "day": 59.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 239,
+      "day": 59.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 240,
+      "day": 60.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 241,
+      "day": 60.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 242,
+      "day": 60.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 243,
+      "day": 60.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 244,
+      "day": 61.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 245,
+      "day": 61.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 246,
+      "day": 61.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 247,
+      "day": 61.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 248,
+      "day": 62.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 249,
+      "day": 62.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 250,
+      "day": 62.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 251,
+      "day": 62.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 252,
+      "day": 63.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 253,
+      "day": 63.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 254,
+      "day": 63.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 255,
+      "day": 63.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 256,
+      "day": 64.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 257,
+      "day": 64.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 258,
+      "day": 64.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 259,
+      "day": 64.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 260,
+      "day": 65.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 261,
+      "day": 65.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 262,
+      "day": 65.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 263,
+      "day": 65.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 264,
+      "day": 66.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 265,
+      "day": 66.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 266,
+      "day": 66.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 267,
+      "day": 66.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 268,
+      "day": 67.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 269,
+      "day": 67.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 270,
+      "day": 67.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 271,
+      "day": 67.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 272,
+      "day": 68.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 273,
+      "day": 68.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 274,
+      "day": 68.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 275,
+      "day": 68.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 276,
+      "day": 69.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 277,
+      "day": 69.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 278,
+      "day": 69.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 279,
+      "day": 69.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 280,
+      "day": 70.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 281,
+      "day": 70.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 282,
+      "day": 70.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 283,
+      "day": 70.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 284,
+      "day": 71.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 285,
+      "day": 71.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 286,
+      "day": 71.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 287,
+      "day": 71.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 288,
+      "day": 72.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 289,
+      "day": 72.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 290,
+      "day": 72.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 291,
+      "day": 72.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 292,
+      "day": 73.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 293,
+      "day": 73.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 294,
+      "day": 73.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 295,
+      "day": 73.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 296,
+      "day": 74.0,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 297,
+      "day": 74.25,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 298,
+      "day": 74.5,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 299,
+      "day": 74.75,
+      "market_index": 1.0001
+    },
+    {
+      "cycle": 300,
+      "day": 75.0,
+      "market_index": 0.9201
+    },
+    {
+      "cycle": 301,
+      "day": 75.25,
+      "market_index": 0.9425
+    },
+    {
+      "cycle": 302,
+      "day": 75.5,
+      "market_index": 0.9586
+    },
+    {
+      "cycle": 303,
+      "day": 75.75,
+      "market_index": 0.9702
+    },
+    {
+      "cycle": 304,
+      "day": 76.0,
+      "market_index": 0.9785
+    },
+    {
+      "cycle": 305,
+      "day": 76.25,
+      "market_index": 0.9845
+    },
+    {
+      "cycle": 306,
+      "day": 76.5,
+      "market_index": 0.9888
+    },
+    {
+      "cycle": 307,
+      "day": 76.75,
+      "market_index": 0.9919
+    },
+    {
+      "cycle": 308,
+      "day": 77.0,
+      "market_index": 0.9942
+    },
+    {
+      "cycle": 309,
+      "day": 77.25,
+      "market_index": 0.9958
+    },
+    {
+      "cycle": 310,
+      "day": 77.5,
+      "market_index": 0.997
+    },
+    {
+      "cycle": 311,
+      "day": 77.75,
+      "market_index": 0.9978
+    },
+    {
+      "cycle": 312,
+      "day": 78.0,
+      "market_index": 0.9984
+    },
+    {
+      "cycle": 313,
+      "day": 78.25,
+      "market_index": 0.9988
+    },
+    {
+      "cycle": 314,
+      "day": 78.5,
+      "market_index": 0.9991
+    },
+    {
+      "cycle": 315,
+      "day": 78.75,
+      "market_index": 0.9994
+    },
+    {
+      "cycle": 316,
+      "day": 79.0,
+      "market_index": 0.9996
+    },
+    {
+      "cycle": 317,
+      "day": 79.25,
+      "market_index": 0.9997
+    },
+    {
+      "cycle": 318,
+      "day": 79.5,
+      "market_index": 0.9998
+    },
+    {
+      "cycle": 319,
+      "day": 79.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 320,
+      "day": 80.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 321,
+      "day": 80.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 322,
+      "day": 80.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 323,
+      "day": 80.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 324,
+      "day": 81.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 325,
+      "day": 81.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 326,
+      "day": 81.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 327,
+      "day": 81.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 328,
+      "day": 82.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 329,
+      "day": 82.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 330,
+      "day": 82.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 331,
+      "day": 82.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 332,
+      "day": 83.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 333,
+      "day": 83.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 334,
+      "day": 83.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 335,
+      "day": 83.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 336,
+      "day": 84.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 337,
+      "day": 84.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 338,
+      "day": 84.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 339,
+      "day": 84.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 340,
+      "day": 85.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 341,
+      "day": 85.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 342,
+      "day": 85.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 343,
+      "day": 85.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 344,
+      "day": 86.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 345,
+      "day": 86.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 346,
+      "day": 86.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 347,
+      "day": 86.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 348,
+      "day": 87.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 349,
+      "day": 87.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 350,
+      "day": 87.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 351,
+      "day": 87.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 352,
+      "day": 88.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 353,
+      "day": 88.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 354,
+      "day": 88.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 355,
+      "day": 88.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 356,
+      "day": 89.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 357,
+      "day": 89.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 358,
+      "day": 89.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 359,
+      "day": 89.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 360,
+      "day": 90.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 361,
+      "day": 90.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 362,
+      "day": 90.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 363,
+      "day": 90.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 364,
+      "day": 91.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 365,
+      "day": 91.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 366,
+      "day": 91.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 367,
+      "day": 91.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 368,
+      "day": 92.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 369,
+      "day": 92.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 370,
+      "day": 92.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 371,
+      "day": 92.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 372,
+      "day": 93.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 373,
+      "day": 93.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 374,
+      "day": 93.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 375,
+      "day": 93.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 376,
+      "day": 94.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 377,
+      "day": 94.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 378,
+      "day": 94.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 379,
+      "day": 94.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 380,
+      "day": 95.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 381,
+      "day": 95.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 382,
+      "day": 95.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 383,
+      "day": 95.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 384,
+      "day": 96.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 385,
+      "day": 96.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 386,
+      "day": 96.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 387,
+      "day": 96.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 388,
+      "day": 97.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 389,
+      "day": 97.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 390,
+      "day": 97.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 391,
+      "day": 97.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 392,
+      "day": 98.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 393,
+      "day": 98.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 394,
+      "day": 98.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 395,
+      "day": 98.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 396,
+      "day": 99.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 397,
+      "day": 99.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 398,
+      "day": 99.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 399,
+      "day": 99.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 400,
+      "day": 100.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 401,
+      "day": 100.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 402,
+      "day": 100.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 403,
+      "day": 100.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 404,
+      "day": 101.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 405,
+      "day": 101.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 406,
+      "day": 101.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 407,
+      "day": 101.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 408,
+      "day": 102.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 409,
+      "day": 102.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 410,
+      "day": 102.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 411,
+      "day": 102.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 412,
+      "day": 103.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 413,
+      "day": 103.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 414,
+      "day": 103.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 415,
+      "day": 103.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 416,
+      "day": 104.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 417,
+      "day": 104.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 418,
+      "day": 104.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 419,
+      "day": 104.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 420,
+      "day": 105.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 421,
+      "day": 105.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 422,
+      "day": 105.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 423,
+      "day": 105.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 424,
+      "day": 106.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 425,
+      "day": 106.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 426,
+      "day": 106.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 427,
+      "day": 106.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 428,
+      "day": 107.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 429,
+      "day": 107.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 430,
+      "day": 107.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 431,
+      "day": 107.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 432,
+      "day": 108.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 433,
+      "day": 108.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 434,
+      "day": 108.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 435,
+      "day": 108.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 436,
+      "day": 109.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 437,
+      "day": 109.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 438,
+      "day": 109.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 439,
+      "day": 109.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 440,
+      "day": 110.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 441,
+      "day": 110.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 442,
+      "day": 110.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 443,
+      "day": 110.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 444,
+      "day": 111.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 445,
+      "day": 111.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 446,
+      "day": 111.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 447,
+      "day": 111.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 448,
+      "day": 112.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 449,
+      "day": 112.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 450,
+      "day": 112.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 451,
+      "day": 112.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 452,
+      "day": 113.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 453,
+      "day": 113.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 454,
+      "day": 113.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 455,
+      "day": 113.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 456,
+      "day": 114.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 457,
+      "day": 114.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 458,
+      "day": 114.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 459,
+      "day": 114.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 460,
+      "day": 115.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 461,
+      "day": 115.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 462,
+      "day": 115.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 463,
+      "day": 115.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 464,
+      "day": 116.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 465,
+      "day": 116.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 466,
+      "day": 116.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 467,
+      "day": 116.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 468,
+      "day": 117.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 469,
+      "day": 117.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 470,
+      "day": 117.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 471,
+      "day": 117.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 472,
+      "day": 118.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 473,
+      "day": 118.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 474,
+      "day": 118.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 475,
+      "day": 118.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 476,
+      "day": 119.0,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 477,
+      "day": 119.25,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 478,
+      "day": 119.5,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 479,
+      "day": 119.75,
+      "market_index": 0.9999
+    },
+    {
+      "cycle": 480,
+      "day": 120.0,
+      "market_index": 0.9999
     }
   ],
   "adaptation_table": [
@@ -1865,7 +3785,7 @@
     "Node Routing etkisi nötrden en iyi skora en fazla +10 yüzde puan; en kötüden nötre en fazla +10 puan.",
     "30 günlük normalize ledger'da 2 ve 10 operasyon/gün ilerleme farkı %5.3; hedef <%20.",
     "balance-1.3 P2 ledger karşılaştırıcısı 24/48/72 saat ritimlerinde 2/10 operasyon farkını katı <%20 tutuyor.",
-    "Pazar yapılandırması ve zorlanmış uç şoklar 0,85-1,15 koridoruna kilitli.",
+    "Pazar her altı-saatlik çevrimde sabit-nokta ortalamaya döner; iki zorlanmış sınır ve D-029 hikâye şokları 0,85-1,15 koridorunda kalır.",
     "Teklif/teminat matematiği hazırlık ve adil fiyatı ödüllendiriyor; iadeler sıralı ve sınırlı.",
     "Yükleme/mod, Node geçerliliği, sürümlü planlı çözüm ve 0-100 dünya uygulaması sınır kontrollerini geçiyor.",
     "NPC maruziyeti her 6 saatlik çevrimde önce %25 unutuluyor; adaptasyon monoton ve +10 puanda sınırlı."

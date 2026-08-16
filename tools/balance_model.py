@@ -20,6 +20,10 @@ N_SIM = 100_000
 FORMULA_VERSION = "balance-1.2"
 CONTENT_VERSION = "asteria-baseline-0.2"
 MARKET_CORRIDOR = (0.85, 1.15)
+MARKET_INDEX_SCALE = 10_000
+MARKET_INDEX_CORRIDOR = (8_500, 11_500)
+MARKET_STORY_SHOCKS = {120: 900, 300: -800}
+MARKET_FIXTURE = ROOT / "packages" / "simulation" / "fixtures" / "market-v1.json"
 WORLD_CYCLE_HOURS = 6
 NPC_FORGETTING_RATE = 0.25
 NODE_NEUTRAL_SCORE = 50.0
@@ -570,20 +574,33 @@ def p2_ledger_progression(operations_per_day: int, cadence_hours: int, days: int
     }
 
 
+def _round_half_away_div(numerator: int, denominator: int) -> int:
+    sign = -1 if numerator < 0 else 1
+    return sign * ((abs(numerator) + denominator // 2) // denominator)
+
+
+def market_transition_basis_points(previous: int, shock: int) -> int:
+    if not isinstance(previous, int) or not isinstance(shock, int):
+        raise ValueError("Market index and shock must be integers")
+    if not MARKET_INDEX_CORRIDOR[0] <= previous <= MARKET_INDEX_CORRIDOR[1]:
+        raise ValueError("Market index is outside the configured corridor")
+    numerator = MARKET_INDEX_SCALE * 100 + 72 * (previous - MARKET_INDEX_SCALE) + shock * 100
+    numerator = int(clamp(MARKET_INDEX_CORRIDOR[0] * 100, MARKET_INDEX_CORRIDOR[1] * 100, numerator))
+    return _round_half_away_div(numerator, 100)
+
+
 def market_transition(previous: float, shock: float) -> float:
-    return clamp(MARKET_CORRIDOR[0], MARKET_CORRIDOR[1], 1 + 0.72 * (previous - 1) + shock)
+    previous_bp = int(round_half_away(previous * MARKET_INDEX_SCALE))
+    shock_bp = int(round_half_away(shock * MARKET_INDEX_SCALE))
+    return market_transition_basis_points(previous_bp, shock_bp) / MARKET_INDEX_SCALE
 
 
 def market_series(days: int = 120) -> list[dict]:
-    rng = deterministic_rng(SEED, f"market:days-{days}")
-    value = 1.0
+    value = MARKET_INDEX_SCALE
     rows = []
-    for day in range(1, days + 1):
-        shock = rng.normal_clt() * 0.035
-        if day in (30, 75):
-            shock += 0.09 if day == 30 else -0.08
-        value = market_transition(value, shock)
-        rows.append({"day": day, "market_index": round_half_away(value, 4)})
+    for cycle in range(1, days * (24 // WORLD_CYCLE_HOURS) + 1):
+        value = market_transition_basis_points(value, MARKET_STORY_SHOCKS.get(cycle, 0))
+        rows.append({"cycle": cycle, "day": cycle / (24 // WORLD_CYCLE_HOURS), "market_index": value / MARKET_INDEX_SCALE})
     return rows
 
 
@@ -863,11 +880,37 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
         assert p2_casual["net_progression_value"] > 0 and p2_engaged["net_progression_value"] > 0 and p2_gap < 0.20
     checks.append("balance-1.3 P2 ledger karşılaştırıcısı 24/48/72 saat ritimlerinde 2/10 operasyon farkını katı <%20 tutuyor.")
     assert MARKET_CORRIDOR == (0.85, 1.15)
+    assert MARKET_INDEX_CORRIDOR == (8500, 11500)
     assert market_transition(1.0, -10.0) == MARKET_CORRIDOR[0]
     assert market_transition(1.0, 10.0) == MARKET_CORRIDOR[1]
+    assert market_transition_basis_points(8500, -420) == 8500
+    assert market_transition_basis_points(11500, 420) == 11500
+    assert market_transition_basis_points(10000, -1500) == 8500
+    assert market_transition_basis_points(10000, 1500) == 11500
+    assert market_transition_basis_points(11500, 0) == 11080
+    assert market_transition_basis_points(11080, 0) == 10778
+    market_fixture = json.loads(MARKET_FIXTURE.read_text(encoding="utf-8"))
+    assert market_fixture["formula_version"] == FORMULA_VERSION and market_fixture["scale"] == MARKET_INDEX_SCALE
+    for case in market_fixture["cases"]:
+        assert market_transition_basis_points(case["previous"], case["shock"]) == case["expected"]
+    for previous in range(8500, 11501):
+        low = market_transition_basis_points(previous, -10_000)
+        high = market_transition_basis_points(previous, 10_000)
+        assert 8500 <= low <= high <= 11500
+    for shock in (-20_000, -1_500, -420, 0, 420, 1_500, 20_000):
+        series = [market_transition_basis_points(previous, shock) for previous in range(8500, 11501)]
+        assert series == sorted(series)
+    for previous in (8500, 9000, 10000, 11000, 11500):
+        series = [market_transition_basis_points(previous, shock) for shock in range(-20_000, 20_001, 97)]
+        assert series == sorted(series)
+    sequential = 11500
+    for _ in range(5):
+        sequential = market_transition_basis_points(sequential, 0)
+    assert sequential != market_transition_basis_points(11500, 0)
     market = market_series()
     assert all(MARKET_CORRIDOR[0] <= row["market_index"] <= MARKET_CORRIDOR[1] for row in market)
-    checks.append("Pazar yapılandırması ve zorlanmış uç şoklar 0,85-1,15 koridoruna kilitli.")
+    assert market[119]["market_index"] == 1.09 and market[299]["market_index"] == 0.9201
+    checks.append("Pazar her altı-saatlik çevrimde sabit-nokta ortalamaya döner; iki zorlanmış sınır ve D-029 hikâye şokları 0,85-1,15 koridorunda kalır.")
     assert contract_probability(80, 50) > contract_probability(50, 50) > contract_probability(20, 50)
     assert offer_score(80, 60, 70, 100, 100) > offer_score(60, 60, 70, 150, 100)
     held = collateral(1_000, 3, 10_000)
@@ -1113,7 +1156,7 @@ def main() -> None:
             "facility_energy_demand": "base_demand * 1.18^(level-1)",
             "energy_efficiency": "allocation / demand; allocation ordered by priority then facility_id",
             "activity_bonus": "min(0.20, 0.08*ln(1+operations_per_day))",
-            "market_index": "clamp(0.85, 1.15, 1 + 0.72*(previous-1) + shock)",
+            "market_index": "roundHalfAway(clamp(8500,11500,10000+0.72*(previous_bp-10000)+shock_bp))/10000 per six-hour cycle",
             "contract_probability": "0.10 + 0.80*sigmoid((player_score-best_npc_score)/9)",
             "offer_score": "0.45*preparedness + 0.25*reputation + 0.20*urgency_fit + 0.10*price_score",
             "bandwidth": "clamp(12,40,10+2*data_center_level+floor(research/5))",

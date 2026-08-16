@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "tsx tests/pcg32.test.ts && tsx tests/energy.test.ts && tsx tests/energy-fixture.test.ts && tsx tests/accrual.test.ts && tsx tests/accrual-fixture.test.ts && tsx tests/world.test.ts",
+    "test": "tsx tests/pcg32.test.ts && tsx tests/energy.test.ts && tsx tests/energy-fixture.test.ts && tsx tests/accrual.test.ts && tsx tests/accrual-fixture.test.ts && tsx tests/world.test.ts && tsx tests/market.test.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
