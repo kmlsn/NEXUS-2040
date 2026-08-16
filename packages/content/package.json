@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "tsx tests/facilities.test.ts",
+    "test": "tsx tests/facilities.test.ts && tsx tests/organizations.test.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
