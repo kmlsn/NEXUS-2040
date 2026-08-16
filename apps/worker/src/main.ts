@@ -1,8 +1,11 @@
 import "reflect-metadata";
 import { randomUUID } from "node:crypto";
 import { NestFactory } from "@nestjs/core";
+import { Pool } from "pg";
 import { WorkerModule } from "./index";
 import { PublicErrorFilter } from "./http";
+import { startWorldCycleRunner } from "./world-cycle-runner";
+import { WorldCycleService } from "./world-cycle-service";
 
 const app = await NestFactory.create(WorkerModule, { logger: false });
 app.useGlobalFilters(new PublicErrorFilter());
@@ -15,3 +18,9 @@ app.use((request: { method: string; url: string }, response: { setHeader(name: s
   next();
 });
 await app.listen(Number(process.env.WORKER_PORT ?? 3001));
+
+const workerPool = new Pool({ connectionString: process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/nexus_local" });
+const runner = startWorldCycleRunner(new WorldCycleService(workerPool, { nowMs: () => Date.now() }));
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.once(signal, () => { runner.stop(); void workerPool.end(); });
+}

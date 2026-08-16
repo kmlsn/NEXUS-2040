@@ -15,11 +15,33 @@ await admin.end();
 
 try {
   await applyMigrations(testUrl);
-  await rollbackLatestMigration(testUrl);
-  await rollbackLatestMigration(testUrl);
-  await rollbackLatestMigration(testUrl);
-  await applyMigrations(testUrl);
-  await applyMigrations(testUrl);
+  const worldClient = new Client({ connectionString: testUrl });
+  worldClient.on("error", () => undefined);
+  await worldClient.connect();
+  const singleton = await worldClient.query<{ count: string }>("SELECT count(*) FROM world_state");
+  if (singleton.rows[0]?.count !== "1") throw new Error("World state singleton was not initialized.");
+  for (const sql of [
+    "INSERT INTO world_state(id, content_version, formula_version, master_seed, epoch_ms) VALUES(2, 'asteria-baseline-0.2', 'balance-1.2', 1, 0)",
+    "UPDATE world_state SET master_seed = 20260810 WHERE id = 1",
+    "UPDATE world_state SET master_seed = 18446744073709551616 WHERE id = 1",
+    "UPDATE world_state SET content_version = 'unknown' WHERE id = 1",
+    "UPDATE world_state SET epoch_ms = 1767225600001 WHERE id = 1",
+    "UPDATE world_state SET completed_cycles = 1, state_revision = 1 WHERE id = 1",
+  ]) {
+    let rejected = false;
+    try { await worldClient.query(sql); } catch { rejected = true; }
+    if (!rejected) throw new Error(`World state constraint accepted: ${sql}`);
+  }
+  await worldClient.end();
+  for (let index = 0; index < 3; index += 1) {
+    const rollback = await rollbackLatestMigration(testUrl);
+    if (rollback !== "012_world_state_immutability") throw new Error("Expected pristine world-state configuration migration rollback.");
+    await applyMigrations(testUrl);
+  }
+  const finalConfigurationRollback = await rollbackLatestMigration(testUrl);
+  if (finalConfigurationRollback !== "012_world_state_immutability") throw new Error("Expected world-state configuration migration to be removed before state rollback coverage.");
+  const finalWorldRollback = await rollbackLatestMigration(testUrl);
+  if (finalWorldRollback !== "011_world_state") throw new Error("Expected world-state migration to be removed before legacy rollback coverage.");
 
   const client = new Client({ connectionString: testUrl });
   client.on("error", () => undefined);
@@ -125,6 +147,14 @@ try {
   if (projectionRollback !== "003_resource_balances") throw new Error("Expected the empty balance projection migration to roll back second.");
   try { await rollbackLatestMigration(testUrl); } catch { downRejected = true; }
   if (!downRejected) throw new Error("Rollback with persisted ledger data was accepted.");
+  await applyMigrations(testUrl);
+  await client.query("UPDATE world_state SET completed_cycles = 1, state_revision = 2 WHERE id = 1");
+  let advancedWorldRollbackRejected = false;
+  try { await rollbackLatestMigration(testUrl); } catch { advancedWorldRollbackRejected = true; }
+  if (!advancedWorldRollbackRejected) throw new Error("Advanced world-state configuration rollback was accepted.");
+  let backwardWorldStateRejected = false;
+  try { await client.query("UPDATE world_state SET completed_cycles = 0, state_revision = 1 WHERE id = 1"); } catch { backwardWorldStateRejected = true; }
+  if (!backwardWorldStateRejected) throw new Error("World state was allowed to move backwards.");
   await client.end();
   console.log("PASS: migrations, version pinning, sequential/concurrent idempotency, immutable ledger, and rollback guard verified.");
 } finally {

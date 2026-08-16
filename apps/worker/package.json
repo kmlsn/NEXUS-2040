@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
+    "test": "tsx tests/world-cycle.test.ts",
+    "test:integration": "tsx --env-file-if-exists=../../.env scripts/world-cycle-integration.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
@@ -12,11 +14,14 @@
     "@nestjs/core": "11.1.28",
     "@nestjs/platform-express": "11.1.28",
     "@nexus/contracts": "workspace:*",
+    "@nexus/simulation": "workspace:*",
+    "pg": "8.23.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@types/node": "26.2.0",
+    "@types/pg": "8.21.0",
     "tsx": "4.23.11"
   }
 }

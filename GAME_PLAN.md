@@ -250,7 +250,7 @@ Tek geliştirici + AI için toplam tam zamanlı tahmin 48-64 haftadır. Süreler
 
 ### Görevler
 
-- [ ] **P3.1** Sürümlü `world_state` ve altı saatlik deterministik dünya çevrimini uygula.
+- [x] **P3.1** Sürümlü `world_state` ve altı saatlik deterministik dünya çevrimini uygula.
 - [ ] **P3.2** Üç NPC organizasyonunun amaç, kapasite, ilişki ve doktrin durumlarını oluştur.
 - [ ] **P3.3** Ortalama dönüşlü 0.85-1.15 NPC pazar endeksini ve hikâye şoklarını uygula; yapılandırma eşitliğini ve iki sınırı zorlayan property testleri ekle.
 - [ ] **P3.4** Hikâye sözleşmesi ile teklif yarışlı pazar sözleşmesini ayır.
@@ -593,6 +593,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | D-024 | Kimlik/oturum P8.2 kapsamına gelene kadar P2.6 merkez endpoint'i profil kimliğini istemciden kabul etmez; tek oyunculu yerel prototipte yalnız sunucunun `CENTER_PROFILE_ID` yapılandırmasındaki UUID'sini kullanır ve bu değer yoksa güvenli boş durum döndürür. Çok kullanıcılı dağıtımda bu bağlam gerçek oturum guard'ından türetilmeden endpoint açılmaz. | Kabul | P8.2 kimlik, yetki ve Origin sınırı gerçeklenince yapılandırmalı bağlam kaldırılır; istemci serbest `profileId` göndermeye başlamaz. |
 | D-025 | P2.7, Faz 4 operasyonu eklemeden §28.2'deki F/O/C/S karşılaştırıcısını sürümlü ve test-yalnız deterministik bir senaryo olarak mevcut PostgreSQL ledger'ına uygular. Senaryo aynı başlangıç tesis/bakiye/doktrin ile yalnız `2` ve `10` günlük operasyon niyetini değiştirir; operasyon ödülü/gideri oyun sonucu değil planın normalize edilmiş sabit karşılaştırıcısıdır. 24/48/72 saat claim ritimleri aynı senaryoda ayrıca ölçülür. Gerçek operasyon sonucu, ısı etkisi ve oyuncu ekonomisiyle final karşılaştırma P4/P9'da aynı kapıyı yeniden çalıştırır. | Kabul | Faz 4 operasyon sonuçları, P3/P4 dünya etkileri veya oyuncu verisi, test-yalnız karşılaştırıcıyı maddi olarak değiştirirse sürüm/seed/fixture ve P2.7 kanıtı birlikte yenilenir. |
 | D-026 | P2.7 gerçek-ledger ritim testi, `balance-1.2`nin `0.08*ln(1+n)` aktivite karşılaştırıcısının 72 saatlik ritimde `%35.1` fark ürettiğini kanıtladı. P2 ekonomi karşılaştırıcısı bu nedenle `balance-1.3` olarak `activity_p2(n)=min(0.12,0.035*ln(1+max(0,n)))` kullanır; 2/10 günlük fark her 24/48/72 saat ritminde katı `<%20` kalmalıdır. PCG, operasyon başarı/taktik, ödül ve tespit matematiği P4'e kadar `balance-1.2`de kalır. | Kabul | Gerçek P4 operasyon çıktıları veya canlı ekonomi gözlemi bu sınırı hedefi karşılamaz kılarsa P2/P4 ortak ekonomi sürümü, fixture ve 30-günlük test birlikte değiştirilir. |
+| D-027 | P3.1 `world_state`, tekil ve sunucu-otoriteli küresel kayıttır: normatif başlangıç `asteria-baseline-0.2` / `balance-1.2`, `master_seed=20260809`, değişmez `epoch_ms=1767225600000` (2026-01-01T00:00:00Z), tamamlanmış altı-saatlik çevrim sayacı ve monoton durum revizyonunu taşır. Worker yalnız PostgreSQL (`pg`) ve saf `@nexus/simulation` paketine bu kayıt için bağımlı olabilir; API↔worker uygulama bağımlılığı yoktur. İstemci seed, zaman veya çevrim sonucu gönderemez. | Kabul | Dünya başlangıcı/çoklu dünya gereksinimi, sürüm/seed/epoch migration'ı ve tekrar üretilebilirlik kanıtı birlikte tasarlanırsa. |
 
 ## 25. Risk kaydı
 
@@ -640,6 +641,7 @@ Bir görev ancak aşağıdakilerin tamamıyla `[x]` yapılır:
 | 2026-08-14 | P2.7 | `010_balance_1_3` sürüm pin'i, sabit `seed=20260809` ve UUID'li 30 günlük izole PostgreSQL ledger karşılaştırıcısı; 24/48/72 saat ritimlerinde 2/10 operasyon farkı sırasıyla `%2.38/%6.85/%18.43` ve katı `<%20`, `pnpm verify`, Python model/fixture denetimi, ekonomi/güvenlik/kalite incelemeleri ve `docs/test-reports/P2.7-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | P2.8 | D-017/D-019/D-021 için sabit LCG `seed=541065224` ile 16 overspend, 8 tam-bakiye yarışı, idempotent replay, underflow/overflow atomikliği ve heterojen cursor saat-geri-alma özellikleri; cursor gerilemesini önleyen sunucu düzeltmesi, `pnpm verify`, ekonomi/kalite incelemeleri ve `docs/test-reports/P2.8-lifecycle.md` PASS | Geçti |
 | 2026-08-14 | Faz 2 kapısı | `docs/phase-reports/P2-gate.md`, `docs/test-reports/P2-lifecycle.md`; beş kaynak/tesis/enerji/accrual/queue/merkez döngüsü, 7/30 günlük gerçek-ledger ekonomi, property sınırları ve tam doğrulama PASS | Geçti |
+| 2026-08-16 | P3.1 | `011-012` singleton/immutable `world_state` migrations, saf `packages/simulation` altı-saat çevrim çözümleyicisi ve worker `FOR UPDATE` runner; sınır/replay/geri-saat, migration ileri-geri, tamper/rollback, gerçek PostgreSQL eşzamanlılık/transaction-restart, `pnpm verify`, güvenlik/kalite incelemeleri ve `docs/test-reports/P3.1-lifecycle.md` PASS | Geçti |
 
 ## 27. Değişiklik protokolü
 
