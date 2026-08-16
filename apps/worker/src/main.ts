@@ -21,6 +21,15 @@ await app.listen(Number(process.env.WORKER_PORT ?? 3001));
 
 const workerPool = new Pool({ connectionString: process.env.DATABASE_URL ?? "postgresql://nexus_local:nexus_local_password@127.0.0.1:15432/nexus_local" });
 const runner = startWorldCycleRunner(new WorldCycleService(workerPool, { nowMs: () => Date.now() }));
+let shuttingDown = false;
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.once(signal, () => { runner.stop(); void workerPool.end(); });
+  process.once(signal, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    void (async () => {
+      runner.stop();
+      await Promise.all([app.close(), workerPool.end()]);
+      process.exit(0);
+    })();
+  });
 }
