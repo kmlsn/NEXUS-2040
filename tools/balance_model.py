@@ -24,6 +24,7 @@ MARKET_INDEX_SCALE = 10_000
 MARKET_INDEX_CORRIDOR = (8_500, 11_500)
 MARKET_STORY_SHOCKS = {120: 900, 300: -800}
 MARKET_FIXTURE = ROOT / "packages" / "simulation" / "fixtures" / "market-v1.json"
+CONTRACT_OFFER_FIXTURE = ROOT / "packages" / "simulation" / "fixtures" / "contract-offer-v1.json"
 WORLD_CYCLE_HOURS = 6
 NPC_FORGETTING_RATE = 0.25
 NODE_NEUTRAL_SCORE = 50.0
@@ -31,6 +32,8 @@ NODE_MAX_BONUS_PP = 0.10
 UINT32_RANGE = 1 << 32
 UINT64_MASK = (1 << 64) - 1
 MICRO_UNITS_PER_RESOURCE = 1_000_000
+CONTRACT_BASE_REWARD_MICRO = 1_000_000_000
+CONTRACT_MIN_HELD_MICRO = 4
 POSTGRES_BIGINT_MIN = -(1 << 63)
 POSTGRES_BIGINT_MAX = (1 << 63) - 1
 RESOURCE_UNITS_PATTERN = re.compile(r"^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
@@ -633,6 +636,51 @@ def collateral_refund(held: float, outcome: str) -> float:
     return round_half_away(max(0.0, held) * rates[outcome])
 
 
+def round_div_half_away_positive(numerator: int, denominator: int) -> int:
+    if numerator < 0 or denominator <= 0:
+        raise ValueError("expected non-negative rational input")
+    return (numerator * 2 + denominator) // (2 * denominator)
+
+
+def contract_fair_value_micro(base_reward_micro: int, market_index_bp: int) -> int:
+    if base_reward_micro <= 0 or not 8500 <= market_index_bp <= 11500:
+        raise ValueError("invalid market contract fair value")
+    return round_div_half_away_positive(base_reward_micro * market_index_bp, MARKET_INDEX_SCALE)
+
+
+def contract_collateral_micro(base_reward_micro: int, tier: int, liquid_capital_micro: int) -> int:
+    if base_reward_micro <= 0 or not 1 <= tier <= 5 or liquid_capital_micro < 0:
+        raise ValueError("invalid market contract collateral")
+    target = round_div_half_away_positive(base_reward_micro * (5 + 3 * tier), 100)
+    liquid_cap = round_div_half_away_positive(liquid_capital_micro * 20, 100)
+    return min(target, liquid_cap)
+
+
+def contract_collateral_refund_micro(held_micro: int, outcome: str) -> int:
+    if held_micro < CONTRACT_MIN_HELD_MICRO:
+        raise ValueError("collateral hold is below the minimum loss-safe amount")
+    if outcome == "awarded":
+        return held_micro
+    if outcome == "lost":
+        return round_div_half_away_positive(held_micro * 75, 100)
+    raise ValueError("unknown P3.5 terminal outcome")
+
+
+def contract_price_score(bid_micro: int, fair_value_micro: int) -> float:
+    if bid_micro <= 0 or fair_value_micro <= 0:
+        raise ValueError("bid and fair value must be positive micro-units")
+    deviation = abs(bid_micro - fair_value_micro)
+    if deviation >= fair_value_micro:
+        return 0.0
+    return round_div_half_away_positive(100 * (fair_value_micro - deviation) * 1_000_000_000, fair_value_micro) / 1_000_000_000
+
+
+def contract_award_rate(master_seed: int, player_score: float, npc_score: float, samples: int) -> float:
+    threshold = probability_threshold(contract_probability(player_score, npc_score))
+    awards = sum(deterministic_rng(master_seed, f"contract:mc:{player_score}:{npc_score}:{index}:award").next_uint32() < threshold for index in range(samples))
+    return awards / samples
+
+
 def bandwidth_capacity(data_center_level: int, bandwidth_research: int) -> int:
     return int(clamp(12, 40, 10 + 2 * data_center_level + math.floor(bandwidth_research / 5)))
 
@@ -916,7 +964,33 @@ def audit_results(matched: list[dict], cross_tier: list[dict]) -> list[str]:
     held = collateral(1_000, 3, 10_000)
     assert collateral_refund(held, "success") > collateral_refund(held, "failure")
     assert collateral_refund(held, "failure") > collateral_refund(held, "abandon")
-    checks.append("Teklif/teminat matematiği hazırlık ve adil fiyatı ödüllendiriyor; iadeler sıralı ve sınırlı.")
+    assert contract_fair_value_micro(CONTRACT_BASE_REWARD_MICRO, 10_000) == CONTRACT_BASE_REWARD_MICRO
+    assert contract_fair_value_micro(CONTRACT_BASE_REWARD_MICRO, 11_500) == 1_150_000_000
+    assert contract_price_score(999_000_000, CONTRACT_BASE_REWARD_MICRO) == 99.9
+    assert contract_collateral_micro(CONTRACT_BASE_REWARD_MICRO, 1, 10_000_000_000) == 80_000_000
+    assert contract_collateral_micro(CONTRACT_BASE_REWARD_MICRO, 1, 10) == 2
+    assert contract_collateral_refund_micro(4, "lost") == 3
+    try:
+        contract_collateral_refund_micro(3, "lost")
+        raise AssertionError("sub-minimum collateral was accepted")
+    except ValueError:
+        pass
+    fixture = json.loads(CONTRACT_OFFER_FIXTURE.read_text())
+    case = fixture["case"]
+    fixture_price = contract_price_score(int(case["bid_micro"]), int(case["fair_value_micro"]))
+    fixture_score = offer_score(case["preparedness"], case["reputation"], case["urgency_fit"], int(case["bid_micro"]), int(case["fair_value_micro"]))
+    fixture_threshold = probability_threshold(contract_probability(fixture_score, case["best_npc_score"]))
+    fixture_draw = deterministic_rng(int(case["master_seed"]), case["stream_id"]).next_uint32()
+    assert fixture_price == case["price_score"] and fixture_score == case["player_score"] and fixture_threshold == case["threshold"] and fixture_draw == case["draw"] and (fixture_draw < fixture_threshold) == case["awarded"]
+    for boundary in fixture["price_score_boundaries"]:
+        assert contract_price_score(int(boundary["bid_micro"]), int(boundary["fair_value_micro"])) == int(boundary["price_score_scaled"]) / 1_000_000_000
+    for delta in (-27, -9, 0, 9, 27):
+        expected = contract_probability(50 + delta, 50)
+        measured = contract_award_rate(SEED, 50 + delta, 50, N_SIM)
+        assert abs(measured - expected) <= 0.006
+        regression = [contract_award_rate(seed, 50 + delta, 50, 5_000) for seed in range(SEED, SEED + 30)]
+        assert all(abs(rate - expected) <= 0.02 for rate in regression)
+    checks.append("Teklif/teminat matematiği hazırlık ve adil fiyatı ödüllendiriyor; P3.5 fair/hold/refund mikro-birimleri ve kayıp sınırı korunuyor.")
     assert bandwidth_capacity(1, 0) == 12
     assert bandwidth_capacity(20, 100) == 40
     assert loadout_is_valid([3, 4, 5], 12)

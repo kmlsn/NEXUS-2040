@@ -13,7 +13,7 @@
     "test": "node scripts/workspace-check.mjs && node scripts/ci-contract-check.mjs && node scripts/local-services-check.mjs --config-only && pnpm --filter @nexus/contracts run test && pnpm --filter @nexus/simulation run test && pnpm --filter @nexus/content run test && pnpm --filter @nexus/api run test && pnpm --filter @nexus/worker run test && pnpm --filter @nexus/web run test && node scripts/pcg-fixture-check.mjs && node scripts/micro-unit-fixture-check.mjs && node scripts/energy-fixture-check.mjs && node scripts/accrual-fixture-check.mjs && node scripts/market-fixture-check.mjs && pnpm --filter @nexus/web run build && node scripts/web-smoke.mjs && node scripts/http-smoke.mjs",
     "test:integration": "pnpm run services:check && pnpm --filter @nexus/api run test:integration && pnpm --filter @nexus/worker run test:integration",
     "test:e2e": "node scripts/deferred-suite.mjs test:e2e",
-    "balance:check": "node scripts/accrual-fixture-check.mjs && node scripts/market-fixture-check.mjs && node scripts/balance-model-check.mjs",
+    "balance:check": "node scripts/accrual-fixture-check.mjs && node scripts/market-fixture-check.mjs && node scripts/contract-offer-fixture-check.mjs && node scripts/balance-model-check.mjs",
     "services:up": "node scripts/compose.mjs up -d --wait",
     "services:down": "node scripts/compose.mjs down",
     "services:logs": "node scripts/compose.mjs logs --tail=100",

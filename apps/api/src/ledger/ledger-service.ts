@@ -4,7 +4,7 @@ import { assertPostgresBigInt, parseMicroUnits } from "./micro-units";
 
 export const RESOURCE_KINDS = ["energy", "compute", "components", "capital", "expertise"] as const;
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
-export const LEDGER_REASONS = ["system_grant", "facility_cost", "facility_refund", "accrual_output", "accrual_settlement", "operation_cost", "operation_reward", "system_reversal"] as const;
+export const LEDGER_REASONS = ["system_grant", "facility_cost", "facility_refund", "accrual_output", "accrual_settlement", "operation_cost", "operation_reward", "system_reversal", "contract_collateral_hold", "contract_collateral_refund"] as const;
 export type LedgerReason = (typeof LEDGER_REASONS)[number];
 export type ResourceDeltas = Partial<Record<ResourceKind, string>>;
 
@@ -43,8 +43,8 @@ function validateReason(reason: LedgerReason, deltas: Array<[ResourceKind, bigin
   const hasNegative = deltas.some(([, amount]) => amount < 0n);
   if (reason === "system_reversal") return;
   if (reason === "accrual_settlement") return;
-  if (["system_grant", "facility_refund", "accrual_output", "operation_reward"].includes(reason) && (!hasPositive || hasNegative)) throw new Error("Ledger source reasons require positive deltas only.");
-  if (["facility_cost", "operation_cost"].includes(reason) && (!hasNegative || hasPositive)) throw new Error("Ledger cost reasons require negative deltas only.");
+  if (["system_grant", "facility_refund", "accrual_output", "operation_reward", "contract_collateral_refund"].includes(reason) && (!hasPositive || hasNegative)) throw new Error("Ledger source reasons require positive deltas only.");
+  if (["facility_cost", "operation_cost", "contract_collateral_hold"].includes(reason) && (!hasNegative || hasPositive)) throw new Error("Ledger cost reasons require negative deltas only.");
 }
 
 function fingerprint(command: LedgerCommand, deltas: Array<[ResourceKind, bigint]>): string {
