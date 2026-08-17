@@ -15,7 +15,7 @@ await admin.query(`CREATE DATABASE ${testDb}`);
 await admin.end();
 
 try {
-  await applyMigrations(testUrl);
+  await applyMigrations(testUrl, "014_npc_market_state");
   const worldClient = new Client({ connectionString: testUrl });
   worldClient.on("error", () => undefined);
   await worldClient.connect();
@@ -80,7 +80,7 @@ try {
   await worldClient.query("DELETE FROM profiles WHERE id = $1", [relationshipProfile]);
   const npcRollback = await rollbackLatestMigration(testUrl);
   if (npcRollback !== "013_npc_organization_state") throw new Error("Expected pristine NPC organization migration rollback.");
-  await applyMigrations(testUrl);
+  await applyMigrations(testUrl, "014_npc_market_state");
   const marketRollbackBeforeNpcStateChange = await rollbackLatestMigration(testUrl);
   if (marketRollbackBeforeNpcStateChange !== "014_npc_market_state") throw new Error("Expected NPC market migration to be removed before NPC state rollback coverage.");
   await worldClient.query("UPDATE npc_organization_state SET capacity_readiness = 56, state_revision = 2 WHERE organization_id = 'free_mesh'");
@@ -91,7 +91,7 @@ try {
   await worldClient.query("INSERT INTO npc_organization_state(organization_id, world_state_id, content_version, formula_version, doctrine_id, capacity_readiness, state_revision) VALUES('free_mesh', 1, 'asteria-baseline-0.2', 'balance-1.2', 'distribute', 55, 1)");
   const finalNpcRollback = await rollbackLatestMigration(testUrl);
   if (finalNpcRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration to be removed before world rollback coverage.");
-  await applyMigrations(testUrl);
+  await applyMigrations(testUrl, "014_npc_market_state");
   for (const sql of [
     "INSERT INTO world_state(id, content_version, formula_version, master_seed, epoch_ms) VALUES(2, 'asteria-baseline-0.2', 'balance-1.2', 1, 0)",
     "UPDATE world_state SET master_seed = 20260810 WHERE id = 1",
@@ -112,7 +112,7 @@ try {
     if (npcRollback !== "013_npc_organization_state") throw new Error("Expected NPC organization migration rollback before world configuration coverage.");
     const rollback = await rollbackLatestMigration(testUrl);
     if (rollback !== "012_world_state_immutability") throw new Error("Expected pristine world-state configuration migration rollback.");
-    await applyMigrations(testUrl);
+    await applyMigrations(testUrl, "014_npc_market_state");
   }
   const finalMarketConfigurationRollback = await rollbackLatestMigration(testUrl);
   if (finalMarketConfigurationRollback !== "014_npc_market_state") throw new Error("Expected NPC market migration to be removed before final configuration rollback.");
@@ -227,7 +227,7 @@ try {
   if (projectionRollback !== "003_resource_balances") throw new Error("Expected the empty balance projection migration to roll back second.");
   try { await rollbackLatestMigration(testUrl); } catch { downRejected = true; }
   if (!downRejected) throw new Error("Rollback with persisted ledger data was accepted.");
-  await applyMigrations(testUrl);
+  await applyMigrations(testUrl, "014_npc_market_state");
   await client.query("UPDATE world_state SET completed_cycles = 1, state_revision = 2 WHERE id = 1");
   const marketRollbackBeforeWorld = await rollbackLatestMigration(testUrl);
   if (marketRollbackBeforeWorld !== "014_npc_market_state") throw new Error("Expected NPC market migration rollback before advanced world rollback coverage.");
@@ -243,7 +243,7 @@ try {
   let backwardWorldStateRejected = false;
   try { await client.query("UPDATE world_state SET completed_cycles = 0, state_revision = 1 WHERE id = 1"); } catch { backwardWorldStateRejected = true; }
   if (!backwardWorldStateRejected) throw new Error("World state was allowed to move backwards.");
-  await applyMigrations(testUrl);
+  await applyMigrations(testUrl, "014_npc_market_state");
   let marketDeleteRejected = false;
   try { await client.query("DELETE FROM npc_market_state WHERE world_state_id = 1"); } catch { marketDeleteRejected = true; }
   if (!marketDeleteRejected) throw new Error("NPC market singleton deletion was accepted.");

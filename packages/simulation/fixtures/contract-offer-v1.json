@@ -1,0 +1,26 @@
+{
+  "formula_version": "balance-1.2",
+  "content_version": "asteria-baseline-0.2",
+  "price_score_boundaries": [
+    {
+      "bid_micro": "603",
+      "fair_value_micro": "857600000",
+      "price_score_scaled": "70313"
+    }
+  ],
+  "case": {
+    "master_seed": "20260809",
+    "stream_id": "contract:fixture:offer:profile:award",
+    "preparedness": 50,
+    "reputation": 50,
+    "urgency_fit": 50,
+    "best_npc_score": 70,
+    "bid_micro": "999000000",
+    "fair_value_micro": "1000000000",
+    "player_score": 54.99,
+    "price_score": 99.9,
+    "threshold": 974856846,
+    "draw": 616210249,
+    "awarded": true
+  }
+}
